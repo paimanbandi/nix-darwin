@@ -8,4 +8,5 @@ return require("lazy").setup({
   require("plugins.oil"),
   require("plugins.toggleterm"),
   require("plugins.formatter"),
+  require("plugins.surround"),
 })

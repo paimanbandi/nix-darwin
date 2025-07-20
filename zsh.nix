@@ -12,6 +12,8 @@
 
       gs  = "git status";
       gcm = "git commit -m";
+      gcam = "git commit --amend -m";
+      gl = "git log";
 
       drs = "sudo darwin-rebuild switch --flake /etc/nix-darwin";
 
