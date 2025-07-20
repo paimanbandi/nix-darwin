@@ -1,6 +1,7 @@
 return require("lazy").setup({
   require("plugins.theme"),
   require("plugins.lsp"),
+  require("plugins.autopairs"),
   require("plugins.cmp"),
   require("plugins.treesitter"),
   require("plugins.flutter"),

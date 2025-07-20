@@ -3,6 +3,16 @@ return {
   event = { "BufWritePre" },
   config = function()
     require("conform").setup({
+      formatters = {
+        prettier = {
+          command = "/run/current-system/sw/bin/prettier",
+        },
+        markdownlint = {
+          command = "/run/current-system/sw/bin/markdownlint",
+          args = { "--fix", "$FILENAME" },
+          stdin = false,
+        },
+      },
       formatters_by_ft = {
         lua = { "stylua" },
         javascript = { "prettier" },
@@ -11,7 +21,7 @@ return {
         typescriptreact = { "prettier" },
         json = { "prettier" },
         yaml = { "prettier" },
-        markdown = { "prettier" },
+        markdown = { "markdownlint" },
         html = { "prettier" },
         css = { "prettier" },
         rust = { "rustfmt" },

@@ -38,6 +38,9 @@
 	        (pkgs.rust-bin.stable.latest.complete)
           pkgs.rust-analyzer
           cargo-watch
+          protobuf
+          prettier
+          markdownlint-cli
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];

@@ -9,7 +9,6 @@
   home.packages = with pkgs; [
     starship
     zsh
-    git
   ];
 
   home.file.".config/nvim".source = ./nvim;
