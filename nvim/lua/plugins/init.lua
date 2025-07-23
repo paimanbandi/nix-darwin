@@ -10,4 +10,5 @@ return require("lazy").setup({
   require("plugins.formatter"),
   require("plugins.surround"),
   require("plugins.flash"),
+  require("plugins.markdown"),
 })
