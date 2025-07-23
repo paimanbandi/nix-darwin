@@ -11,4 +11,8 @@ return require("lazy").setup({
   require("plugins.surround"),
   require("plugins.flash"),
   require("plugins.markdown"),
+  require("plugins.numbertoggle"),
+  require("plugins.colorizer"),
+  require("plugins.lualine"),
+  require("plugins.modes"),
 })
