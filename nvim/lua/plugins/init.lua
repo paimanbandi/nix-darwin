@@ -9,4 +9,5 @@ return require("lazy").setup({
   require("plugins.toggleterm"),
   require("plugins.formatter"),
   require("plugins.surround"),
+  require("plugins.flash"),
 })
