@@ -8,7 +8,7 @@ return {
   config = function()
     require("mason").setup()
     require("mason-lspconfig").setup({
-      ensure_installed = { "rust_analyzer", "lua_ls", "ts_ls" },
+      ensure_installed = { "rust_analyzer", "lua_ls", "ts_ls", "tailwindcss", "html", "cssls" },
     })
 
     local lspconfig = require("lspconfig")
@@ -22,6 +22,9 @@ return {
       vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
       vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float)
     end
+
+    local capabilities = vim.lsp.protocol.make_client_capabilities()
+    capabilities.textDocument.completion.completionItem.snippetSupport = true
 
     local servers = {
       rust_analyzer = {
@@ -40,6 +43,23 @@ return {
         }
       },
       lua_ls = {}, -- default
+      ts_ls = {},
+      tailwindcss = {
+        filetypes = { "html", "css", "scss", "javascript", "javascriptreact", "typescript", "typescriptreact" },
+      },
+      html = {},
+      cssls = {},
+      emmet_ls = {
+        capabilities = capabilities,
+        filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "svelte", "pug", "typescriptreact", "vue" },
+        init_options = {
+          html = {
+            options = {
+              ["bem.enabled"] = true,
+            },
+          },
+        }
+      }
     }
 
     for server_name, server_config in pairs(servers) do

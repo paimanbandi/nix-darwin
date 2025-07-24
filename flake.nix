@@ -41,6 +41,8 @@
           protobuf
           prettier
           markdownlint-cli
+          tailwindcss-language-server
+          emmet-ls
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];
