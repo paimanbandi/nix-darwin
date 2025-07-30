@@ -31,6 +31,7 @@
           curl
           httpie
           tree
+          ripgrep
           ruby_3_2
           cocoapods
           zig

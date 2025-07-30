@@ -8,13 +8,15 @@ return {
   config = function()
     require("mason").setup()
     require("mason-lspconfig").setup({
-      ensure_installed = { "rust_analyzer", "lua_ls", "ts_ls", "tailwindcss", "html", "cssls" },
+      ensure_installed = {
+        "rust_analyzer", "lua_ls", "tsserver",
+        "tailwindcss", "html", "cssls", "emmet_ls"
+      },
     })
 
     local lspconfig = require("lspconfig")
 
     local function on_attach(_, bufnr)
-      print("LSP attached to buffer " .. bufnr)
       vim.notify("LSP attached to buffer " .. bufnr)
 
       local opts = { buffer = bufnr, noremap = true, silent = true }
@@ -27,47 +29,59 @@ return {
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities.textDocument.completion.completionItem.snippetSupport = true
 
-    local servers = {
-      rust_analyzer = {
-        settings = {
-          ["rust-analyzer"] = {
-            files = {
-              sysrootSrc = "/nix/store/j83m2n8kf6rasivjh0rw0y53rq04ypcv-rust-complete-1.88.0/lib/rustlib/src/rust"
-            },
-            cargo = {
-              allFeatures = true,
-            },
-            procMacro = {
-              enable = true,
-            },
-          }
-        }
-      },
-      lua_ls = {}, -- default
-      ts_ls = {},
-      tailwindcss = {
-        filetypes = { "html", "css", "scss", "javascript", "javascriptreact", "typescript", "typescriptreact" },
-      },
-      html = {},
-      cssls = {},
-      emmet_ls = {
-        capabilities = capabilities,
-        filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "svelte", "pug", "typescriptreact", "vue" },
-        init_options = {
-          html = {
-            options = {
-              ["bem.enabled"] = true,
+    require("mason-lspconfig").setup_handlers({
+      function(server_name)
+        lspconfig[server_name].setup({
+          on_attach = on_attach,
+          capabilities = capabilities,
+        })
+      end,
+
+      ["rust_analyzer"] = function()
+        lspconfig.rust_analyzer.setup({
+          on_attach = on_attach,
+          capabilities = capabilities,
+          settings = {
+            ["rust-analyzer"] = {
+              files = {
+                sysrootSrc = "/nix/store/j83m2n8kf6rasivjh0rw0y53rq04ypcv-rust-complete-1.88.0/lib/rustlib/src/rust"
+              },
+              cargo = { allFeatures = true },
+              procMacro = { enable = true },
             },
           },
-        }
-      }
-    }
+        })
+      end,
 
-    for server_name, server_config in pairs(servers) do
-      lspconfig[server_name].setup(vim.tbl_extend("force", {
-        on_attach = on_attach,
-      }, server_config))
-    end
+      ["emmet_ls"] = function()
+        lspconfig.emmet_ls.setup({
+          on_attach = on_attach,
+          capabilities = capabilities,
+          filetypes = {
+            "css", "eruby", "html", "javascript", "javascriptreact",
+            "less", "sass", "scss", "svelte", "pug", "typescriptreact", "vue"
+          },
+          init_options = {
+            html = {
+              options = {
+                ["bem.enabled"] = true,
+              },
+            },
+          },
+        })
+      end,
+
+      ["tailwindcss"] = function()
+        lspconfig.tailwindcss.setup({
+          on_attach = on_attach,
+          capabilities = capabilities,
+          filetypes = {
+            "html", "css", "scss", "javascript", "javascriptreact",
+            "typescript", "typescriptreact"
+          },
+        })
+      end,
+    })
 
     vim.diagnostic.config({
       virtual_text = false,
