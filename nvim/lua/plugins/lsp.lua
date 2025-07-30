@@ -15,12 +15,13 @@ return {
 
     local function on_attach(_, bufnr)
       print("LSP attached to buffer " .. bufnr)
+      vim.notify("LSP attached to buffer " .. bufnr)
 
       local opts = { buffer = bufnr, noremap = true, silent = true }
       vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
       vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
       vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-      vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float)
+      vim.keymap.set("n", "<leader>of", vim.diagnostic.open_float, opts)
     end
 
     local capabilities = vim.lsp.protocol.make_client_capabilities()
