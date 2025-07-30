@@ -17,4 +17,6 @@ return require("lazy").setup({
   require("plugins.telescope"),
   require("plugins.leap"),
   require("plugins.git"),
+  require("plugins.trouble"),
+  require("plugins.tree"),
 })

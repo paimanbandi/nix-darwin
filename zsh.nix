@@ -11,9 +11,12 @@
       ll  = "lsd -al --color=always";
 
       gs  = "git status";
+      gaa = "git add .";
       gcm = "git commit -m";
       gcam = "git commit --amend -m";
       gl = "git log";
+      gpl = "git pull";
+      gps = "git push";
 
       drs = "sudo darwin-rebuild switch --flake /etc/nix-darwin";
 
@@ -23,6 +26,8 @@
       nzr = "cd /etc/nix-darwin && nvim zsh.nix";
       ncf = "cd /etc/nix-darwin && nvim nvim/";
 
+      cb="cargo build";
+      cc="cargo clean";
       cr="cargo run";
       cw="cargo watch -x run";
 

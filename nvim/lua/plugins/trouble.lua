@@ -1,21 +1,23 @@
 return {
   "folke/trouble.nvim",
-  opts = {},
+  opts = {
+    win = { position = "right", size = 140 },
+  },
   cmd = "Trouble",
   keys = {
     {
       "<leader>xx",
-      "<cmd>Trouble diagnostics toggle<cr>",
+      "<cmd>Trouble diagnostics toggle win.position=right<cr>",
       desc = "Diagnostics (Trouble)",
     },
     {
       "<leader>xX",
-      "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+      "<cmd>Trouble diagnostics toggle filter.buf=0 win.position=right<cr>",
       desc = "Buffer Diagnostics (Trouble)",
     },
     {
       "<leader>cs",
-      "<cmd>Trouble symbols toggle focus=false<cr>",
+      "<cmd>Trouble symbols toggle focus=false win.position=right<cr>",
       desc = "Symbols (Trouble)",
     },
     {
@@ -25,12 +27,12 @@ return {
     },
     {
       "<leader>xL",
-      "<cmd>Trouble loclist toggle<cr>",
+      "<cmd>Trouble loclist toggle win.position=right<cr>",
       desc = "Location List (Trouble)",
     },
     {
       "<leader>xQ",
-      "<cmd>Trouble qflist toggle<cr>",
+      "<cmd>Trouble qflist toggle win.position=right<cr>",
       desc = "Quickfix List (Trouble)",
     },
   },
