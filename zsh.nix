@@ -12,17 +12,17 @@
 
       gs  = "git status";
       gb  = "git branch";
-      ga = "git add";
+      ga  = "git add";
       gaa = "git add .";
       gco = "git checkout";
       gcm = "git commit -m";
-      gcam = "git commit --amend -m";
-      gl = "git log";
+      gcam= "git commit --amend -m";
+      gl  = "git log";
       glf = "git log --graph --decorate --color --pretty=format:'%C(auto)%h %C(bold blue)%d %C(reset)%s %C(green)(%cr) %C(bold yellow)<%an>'";
       gpl = "git pull";
       gps = "git push";
       gpo = "git push origin";
-      gf = "git fetch";
+      gf  = "git fetch";
       gft = "git fetch --tags";
 
       drs = "sudo darwin-rebuild switch --flake /etc/nix-darwin";
@@ -33,10 +33,13 @@
       nzr = "cd /etc/nix-darwin && nvim zsh.nix";
       ncf = "cd /etc/nix-darwin && nvim nvim/";
 
-      cb="cargo build";
-      cc="cargo clean";
-      cr="cargo run";
-      cw="cargo watch -x run";
+      cb  ="cargo build";
+      cc  ="cargo clean";
+      cr  ="cargo run";
+      cw  ="cargo watch -x run";
+
+      sma = "sqlx migrate add";
+      smr = "sqlx migrate run";
 
     };
 
