@@ -15,16 +15,49 @@ return {
       local opts = { buffer = bufnr, noremap = true, silent = true }
       vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
       vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-      vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+      vim.keymap.set({ "n", "v" }, "<leader>ca", function()
+        vim.lsp.buf.code_action({
+          filter = function(action)
+            return not (action.kind == "source.fixAll")
+          end,
+          apply = true,
+          context = {
+            only = {
+              "quickfix",
+              "refactor",
+              "source",
+              "organizeImports"
+            },
+            diagnostics = {}
+          }
+        })
+      end, opts)
       vim.keymap.set("n", "<leader>of", vim.diagnostic.open_float, opts)
     end
 
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities.textDocument.completion.completionItem.snippetSupport = true
+    capabilities.textDocument.codeAction = {
+      dynamicRegistration = true,
+      codeActionLiteralSupport = {
+        codeActionKind = {
+          valueSet = {
+            "",
+            "quickfix",
+            "refactor",
+            "refactor.extract",
+            "refactor.inline",
+            "refactor.rewrite",
+            "source",
+            "source.organizeImports",
+          },
+        },
+      },
+    }
 
     require("mason-lspconfig").setup({
       ensure_installed = {
-        "rust_analyzer", "lua_ls", "tsserver",
+        "rust_analyzer", "lua_ls", "ts_ls",
         "tailwindcss", "html", "cssls", "emmet_ls"
       },
       handlers = {
@@ -46,6 +79,9 @@ return {
                 },
                 cargo = { allFeatures = true },
                 procMacro = { enable = true },
+                checkOnSave = {
+                  command = "clippy"
+                },
               },
             },
           })
@@ -60,8 +96,23 @@ return {
                 diagnostics = {
                   globals = { "vim" },
                 },
+                workspace = {
+                  checkThirdParty = false,
+                },
               },
             },
+          })
+        end,
+
+        ["ts_ls"] = function()
+          lspconfig.ts_ls.setup({
+            on_attach = on_attach,
+            capabilities = capabilities,
+            init_options = {
+              preferences = {
+                importModuleSpecifierPreference = "relative",
+              }
+            }
           })
         end,
 
@@ -89,7 +140,7 @@ return {
             capabilities = capabilities,
             filetypes = {
               "html", "css", "scss", "javascript", "javascriptreact",
-              "typescript", "typescriptreact"
+              "typescript", "typescriptreact", "svelte", "vue"
             },
           })
         end,
