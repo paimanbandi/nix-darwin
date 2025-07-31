@@ -12,13 +12,18 @@
 
       gs  = "git status";
       gb  = "git branch";
+      ga = "git add";
       gaa = "git add .";
       gco = "git checkout";
       gcm = "git commit -m";
       gcam = "git commit --amend -m";
       gl = "git log";
+      glf = "git log --graph --decorate --color --pretty=format:'%C(auto)%h %C(bold blue)%d %C(reset)%s %C(green)(%cr) %C(bold yellow)<%an>'";
       gpl = "git pull";
       gps = "git push";
+      gpo = "git push origin";
+      gf = "git fetch";
+      gft = "git fetch --tags";
 
       drs = "sudo darwin-rebuild switch --flake /etc/nix-darwin";
 
@@ -38,7 +43,7 @@
     initContent = ''
       export EDITOR=nvim
       export FLUTTER_HOME="/Users/paiman/Programs/flutter"
-      export CARGO_HOME="Users/paiman/.cargo"
+      export CARGO_HOME="/Users/paiman/.cargo"
       export PATH="/run/current-system/sw/bin:$FLUTTER_HOME/bin:$CARGO_HOME/bin:$PATH"
       eval "$(starship init zsh)"
     '';
