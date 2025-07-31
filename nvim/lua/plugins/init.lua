@@ -19,4 +19,5 @@ return require("lazy").setup({
   require("plugins.git"),
   require("plugins.trouble"),
   require("plugins.tree"),
+  require("plugins.saga"),
 })

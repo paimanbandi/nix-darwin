@@ -15,45 +15,8 @@ return {
       local opts = { buffer = bufnr, noremap = true, silent = true }
       vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
       vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-      vim.keymap.set({ "n", "v" }, "<leader>ca", function()
-        vim.lsp.buf.code_action({
-          filter = function(action)
-            return not (action.kind == "source.fixAll")
-          end,
-          apply = true,
-          context = {
-            only = {
-              "quickfix",
-              "refactor",
-              "source",
-              "organizeImports"
-            },
-            diagnostics = vim.diagnostic.get(bufnr)
-          }
-        })
-      end, opts)
       vim.keymap.set("n", "<leader>of", vim.diagnostic.open_float, opts)
     end
-
-    local capabilities = vim.lsp.protocol.make_client_capabilities()
-    capabilities.textDocument.completion.completionItem.snippetSupport = true
-    capabilities.textDocument.codeAction = {
-      dynamicRegistration = true,
-      codeActionLiteralSupport = {
-        codeActionKind = {
-          valueSet = {
-            "",
-            "quickfix",
-            "refactor",
-            "refactor.extract",
-            "refactor.inline",
-            "refactor.rewrite",
-            "source",
-            "source.organizeImports",
-          },
-        },
-      },
-    }
 
     require("mason-lspconfig").setup({
       ensure_installed = {
@@ -64,14 +27,12 @@ return {
         function(server_name)
           lspconfig[server_name].setup({
             on_attach = on_attach,
-            capabilities = capabilities,
           })
         end,
 
         ["rust_analyzer"] = function()
           lspconfig.rust_analyzer.setup({
             on_attach = on_attach,
-            capabilities = capabilities,
             settings = {
               ["rust-analyzer"] = {
                 files = {
@@ -90,7 +51,6 @@ return {
         ["lua_ls"] = function()
           lspconfig.lua_ls.setup({
             on_attach = on_attach,
-            capabilities = capabilities,
             settings = {
               Lua = {
                 diagnostics = {
@@ -107,7 +67,6 @@ return {
         ["ts_ls"] = function()
           lspconfig.ts_ls.setup({
             on_attach = on_attach,
-            capabilities = capabilities,
             init_options = {
               preferences = {
                 importModuleSpecifierPreference = "relative",
@@ -119,7 +78,6 @@ return {
         ["emmet_ls"] = function()
           lspconfig.emmet_ls.setup({
             on_attach = on_attach,
-            capabilities = capabilities,
             filetypes = {
               "css", "eruby", "html", "javascript", "javascriptreact",
               "less", "sass", "scss", "svelte", "pug", "typescriptreact", "vue"
@@ -137,7 +95,6 @@ return {
         ["tailwindcss"] = function()
           lspconfig.tailwindcss.setup({
             on_attach = on_attach,
-            capabilities = capabilities,
             filetypes = {
               "html", "css", "scss", "javascript", "javascriptreact",
               "typescript", "typescriptreact", "svelte", "vue"
