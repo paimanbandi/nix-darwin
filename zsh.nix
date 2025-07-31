@@ -11,7 +11,9 @@
       ll  = "lsd -al --color=always";
 
       gs  = "git status";
+      gb  = "git branch";
       gaa = "git add .";
+      gco = "git checkout";
       gcm = "git commit -m";
       gcam = "git commit --amend -m";
       gl = "git log";
@@ -36,7 +38,8 @@
     initContent = ''
       export EDITOR=nvim
       export FLUTTER_HOME="/Users/paiman/Programs/flutter"
-      export PATH="/run/current-system/sw/bin:$FLUTTER_HOME/bin:$PATH"
+      export CARGO_HOME="Users/paiman/.cargo"
+      export PATH="/run/current-system/sw/bin:$FLUTTER_HOME/bin:$CARGO_HOME/bin:$PATH"
       eval "$(starship init zsh)"
     '';
   };
