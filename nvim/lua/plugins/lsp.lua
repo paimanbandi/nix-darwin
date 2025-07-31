@@ -13,7 +13,6 @@ return {
     local function on_attach(_, bufnr)
       vim.notify("LSP attached to buffer " .. bufnr)
       local opts = { buffer = bufnr, noremap = true, silent = true }
-      vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
       vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
       vim.keymap.set("n", "<leader>of", vim.diagnostic.open_float, opts)
     end
