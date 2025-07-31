@@ -28,7 +28,7 @@ return {
               "source",
               "organizeImports"
             },
-            diagnostics = {}
+            diagnostics = vim.diagnostic.get(bufnr)
           }
         })
       end, opts)
