@@ -20,4 +20,5 @@ return require("lazy").setup({
   require("plugins.trouble"),
   require("plugins.tree"),
   require("plugins.saga"),
+  require("plugins.drop"),
 })
