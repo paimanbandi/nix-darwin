@@ -21,4 +21,5 @@ return require("lazy").setup({
   require("plugins.tree"),
   require("plugins.saga"),
   require("plugins.better-escape"),
+  require("plugins.numb"),
 })
