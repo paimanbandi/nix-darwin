@@ -10,17 +10,25 @@ return {
 
     local lspconfig = require("lspconfig")
 
-    local function on_attach(_, bufnr)
+    local function on_attach(client, bufnr)
       vim.notify("LSP attached to buffer " .. bufnr)
       local opts = { buffer = bufnr, noremap = true, silent = true }
       vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
       vim.keymap.set("n", "<leader>of", vim.diagnostic.open_float, opts)
+      if client.supports_method("textDocument/formatting") then
+        vim.api.nvim_create_autocmd("BufWritePre", {
+          buffer = bufnr,
+          callback = function()
+            vim.lsp.buf.format({ timeout_ms = 3000 })
+          end,
+        })
+      end
     end
 
     require("mason-lspconfig").setup({
       ensure_installed = {
         "rust_analyzer", "lua_ls", "ts_ls",
-        "tailwindcss", "html", "cssls", "emmet_ls"
+        "tailwindcss", "html", "cssls", "emmet_ls", "dockerls", "yamlls"
       },
       handlers = {
         function(server_name)

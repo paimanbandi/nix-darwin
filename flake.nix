@@ -30,6 +30,8 @@
           git
           curl
           httpie
+          grpcurl
+          grpcui
           tree
           ripgrep
           ruby_3_2
@@ -44,6 +46,11 @@
           markdownlint-cli
           tailwindcss-language-server
           emmet-ls
+          caddy
+          yamllint
+          ntp
+          awscli2
+          sshfs
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -56,7 +63,7 @@
 
         nixpkgs.hostPlatform = system;
 
-        time.timeZone = "Asia/Jakarta";
+        time.timeZone = "Asia/Makassar";
       };
     in {
       darwinConfigurations."MacBook-Pro-de-Paiman" = nix-darwin.lib.darwinSystem {
