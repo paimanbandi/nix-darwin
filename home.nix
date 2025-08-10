@@ -5,6 +5,7 @@
   imports = [
     ./zsh.nix
     ./starship.nix
+    ./ghostty.nix
   ];
 
   home.packages = with pkgs; [
