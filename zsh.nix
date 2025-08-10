@@ -42,7 +42,6 @@
       smr = "sqlx migrate run";
       smi = "sqlx migrate info";
       smv = "sqlx migrate revert";
-
     };
 
     initContent = ''

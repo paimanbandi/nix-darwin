@@ -4,7 +4,6 @@
     background = #282c34
     foreground = #abb2bf
     cursor-color = #e5c07b
-    enable-true-color = true
 
     palette = 0=#282c34
     palette = 1=#e06c75
