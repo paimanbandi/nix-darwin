@@ -6,6 +6,7 @@
     ./zsh.nix
     ./starship.nix
     ./ghostty.nix
+    ./warp.nix
   ];
 
   home.packages = with pkgs; [
