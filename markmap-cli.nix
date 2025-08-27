@@ -8,10 +8,14 @@ pkgs.buildNpmPackage rec {
     owner = "markmap";
     repo = "markmap";
     rev = "v${version}";
-    sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+    sha256 = "sha256-qqkaA0sl3Ycz3yjgxlpHIRrSxmYR/mcjCyVWuoggEug=";
   };
 
   npmDepsHash = "sha256-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=";
+
+  postPatch = ''
+    npm install --package-lock-only
+  '';
 
   npmBuild = "npm run build";
 
