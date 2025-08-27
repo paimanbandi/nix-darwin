@@ -20,6 +20,7 @@
         inherit system overlays; 
         config.allowUnfree = true;
       };
+      markmap = import ./markmap-cli.nix { inherit pkgs; };
 
       configuration = { pkgs, ... }: {
         environment.systemPackages = with pkgs; [
@@ -51,6 +52,7 @@
           ntp
           awscli2
           sshfs
+          markmap
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -80,7 +82,7 @@
           }
           ];
         specialArgs = {
-          inherit pkgs;
+          inherit pkgs markmap;
         };
       };
     };

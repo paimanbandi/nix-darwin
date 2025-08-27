@@ -6,6 +6,11 @@ return {
       diagnostic = {
         show_virtual_text = false,
       },
+      code_action = {
+        lightbulb = {
+          enable = false
+        }
+      }
     })
     vim.keymap.set("n", "gd", "<cmd>Lspsaga goto_definition<CR>", { silent = true, desc = "Go to Definition (Lspsaga)" })
     vim.keymap.set("n", "<leader>ca", "<cmd>Lspsaga code_action<CR>", { silent = true })
