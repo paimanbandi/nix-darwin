@@ -3,6 +3,7 @@ return {
     "mfussenegger/nvim-dap",
     dependencies = {
       "rcarriga/nvim-dap-ui",
+      "nvim-neotest/nvim-nio",
       "theHamsta/nvim-dap-virtual-text",
       "mxsdev/nvim-dap-vscode-js",
     },
@@ -54,5 +55,19 @@ return {
     "microsoft/vscode-js-debug",
     build = "npm install --legacy-peer-deps && npm run compile",
     version = "1.*",
+  },
+  {
+    "leoluz/nvim-dap-go",
+    config = function()
+      require("dap-go").setup()
+      -- optional keymaps
+      vim.keymap.set("n", "<leader>dt", function()
+        require("dap-go").debug_test()
+      end, { desc = "Debug Go test" })
+
+      vim.keymap.set("n", "<leader>dl", function()
+        require("dap-go").debug_last_test()
+      end, { desc = "Debug last Go test" })
+    end,
   },
 }

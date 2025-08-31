@@ -22,4 +22,8 @@ return require("lazy").setup({
   require("plugins.better-escape"),
   require("plugins.numb"),
   require("plugins.dap"),
+}, {
+  install = { missing = false },
+  checker = { enabled = false },
+  change_detection = { enabled = false },
 })

@@ -41,6 +41,7 @@
 	        (pkgs.rust-bin.stable.latest.complete)
           pkgs.rust-analyzer
           cargo-watch
+          go
           protobuf
           prettier
           markdownlint-cli

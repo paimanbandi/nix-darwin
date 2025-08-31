@@ -28,7 +28,7 @@ return {
     require("mason-lspconfig").setup({
       ensure_installed = {
         "rust_analyzer", "lua_ls", "ts_ls",
-        "tailwindcss", "html", "cssls", "emmet_ls", "dockerls", "yamlls"
+        "tailwindcss", "html", "cssls", "emmet_ls", "dockerls", "yamlls", "gopls",
       },
       handlers = {
         function(server_name)
@@ -105,6 +105,21 @@ return {
             filetypes = {
               "html", "css", "scss", "javascript", "javascriptreact",
               "typescript", "typescriptreact", "svelte", "vue"
+            },
+          })
+        end,
+        ["gopls"] = function()
+          lspconfig.gopls.setup({
+            on_attach = on_attach,
+            settings = {
+              gopls = {
+                gofumpt = true,
+                analyses = {
+                  unusedparams = true,
+                  shadow = true,
+                },
+                staticcheck = true,
+              },
             },
           })
         end,
