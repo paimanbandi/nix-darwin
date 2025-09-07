@@ -53,6 +53,9 @@
           awscli2
           sshfs
           vscode-js-debug
+          python314
+          pipx
+          wireguard-tools
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];

@@ -13,7 +13,7 @@ return {
       }
     })
     vim.keymap.set("n", "gd", "<cmd>Lspsaga goto_definition<CR>", { silent = true, desc = "Go to Definition (Lspsaga)" })
-    vim.keymap.set("n", "<leader>ca", "<cmd>Lspsaga code_action<CR>", { silent = true })
+    vim.keymap.set("n", "<leader>ca", "<cmd>Lspsaga code_action<CR>", { silent = true, desc = "Code Action + Save" })
   end,
   dependencies = {
     "nvim-treesitter/nvim-treesitter",

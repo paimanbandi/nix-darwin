@@ -133,5 +133,22 @@ return {
       update_in_insert = false,
       severity_sort = true,
     })
+
+    -- auto save after code action
+    local orig_request = vim.lsp.buf_request
+    vim.lsp.buf_request = function(bufnr, method, params, handler)
+      return orig_request(bufnr, method, params, function(err, result, ctx, config)
+        if handler then
+          handler(err, result, ctx, config)
+        end
+        if method == "textDocument/codeAction" or method == "workspace/executeCommand" then
+          vim.schedule(function()
+            if vim.bo[bufnr].modified then
+              vim.cmd("silent! write")
+            end
+          end)
+        end
+      end)
+    end
   end,
 }
