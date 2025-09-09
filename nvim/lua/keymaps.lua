@@ -11,3 +11,5 @@ k.set('n', '<leader><leader>', ':b#<CR>', { silent = true })
 k.set("n", "<leader>dl", vim.diagnostic.setloclist, { desc = "Show diagnostics in loclist" })
 
 k.set("n", "<leader>mm", ":!markmap % -o<CR>", { silent = true })
+k.set("n", "<leader>n", ":set number!<CR>", { silent = true })
+k.set("n", "<leader>r", ":set relativenumber!<CR>", { silent = true })
