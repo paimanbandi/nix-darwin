@@ -15,11 +15,13 @@
       ga  = "git add";
       gaa = "git add .";
       gco = "git checkout";
+      gcob = "git checkout branch";
       gcm = "git commit -m";
       gcam= "git commit --amend -m";
       gl  = "git log";
       glf = "git log --graph --decorate --color --pretty=format:'%C(auto)%h %C(bold blue)%d %C(reset)%s %C(green)(%cr) %C(bold yellow)<%an>'";
       gpl = "git pull";
+      gplr = "git pull --rebase";
       gps = "git push";
       gpo = "git push origin";
       gf  = "git fetch";

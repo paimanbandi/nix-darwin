@@ -56,6 +56,9 @@
           python314
           pipx
           wireguard-tools
+          zulu8
+          ripgrep-all
+          openresolv
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];
