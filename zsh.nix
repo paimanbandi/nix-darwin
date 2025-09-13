@@ -15,7 +15,7 @@
       ga  = "git add";
       gaa = "git add .";
       gco = "git checkout";
-      gcob = "git checkout branch";
+      gcob = "git checkout -b";
       gcm = "git commit -m";
       gcam= "git commit --amend -m";
       gl  = "git log";
@@ -24,8 +24,10 @@
       gplr = "git pull --rebase";
       gps = "git push";
       gpo = "git push origin";
+      gpfl = "git push --force-with-lease";
       gf  = "git fetch";
       gft = "git fetch --tags";
+      gri = "git rebase -i";
 
       drs = "sudo darwin-rebuild switch --flake /etc/nix-darwin";
 
