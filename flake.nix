@@ -59,6 +59,7 @@
           zulu8
           ripgrep-all
           openresolv
+          swift-format
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];

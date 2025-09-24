@@ -16,7 +16,11 @@ return {
           command = "/run/current-system/sw/bin/yamllint",
           args = { "-f", "parsable", "$FILENAME" },
           stdin = false,
-        }
+        },
+        swift_format = {
+          command = "/run/current-system/sw/bin/swift_format",
+        },
+
       },
       formatters_by_ft = {
         lua = { "stylua" },
@@ -33,6 +37,7 @@ return {
         python = { "black" },
         go = { "gofmt" },
         dockerfile = { "lsp" },
+        swift = { "swift_format" },
       },
       format_on_save = function(bufnr)
         local ignore_filetypes = { "sql" }

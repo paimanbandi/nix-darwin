@@ -22,6 +22,7 @@ return require("lazy").setup({
   require("plugins.better-escape"),
   require("plugins.numb"),
   require("plugins.dap"),
+  require("plugins.git-conflict"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
