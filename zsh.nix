@@ -11,22 +11,33 @@
       ll  = "lsd -al --color=always";
 
       gs  = "git status";
+
       gb  = "git branch";
+      gbr = "git branch -r";
+      gba = "git branch -a";
+
       ga  = "git add";
       gaa = "git add .";
+
       gco = "git checkout";
       gcob = "git checkout -b";
+
       gcm = "git commit -m";
+      gca = "git commit --amend";
       gcam= "git commit --amend -m";
       gl  = "git log";
       glf = "git log --graph --decorate --color --pretty=format:'%C(auto)%h %C(bold blue)%d %C(reset)%s %C(green)(%cr) %C(bold yellow)<%an>'";
       gpl = "git pull";
       gplr = "git pull --rebase";
+
       gps = "git push";
       gpo = "git push origin";
+      gpf = "git push --force";
       gpfl = "git push --force-with-lease";
+
       gf  = "git fetch";
       gft = "git fetch --tags";
+
       gri = "git rebase -i";
 
       drs = "sudo darwin-rebuild switch --flake /etc/nix-darwin";
