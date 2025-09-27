@@ -61,7 +61,7 @@
           ripgrep-all
           openresolv
           swift-format
-          imagemagick
+          chafa
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];
