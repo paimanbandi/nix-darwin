@@ -62,6 +62,8 @@
           openresolv
           swift-format
           chafa
+          imagemagick
+          luarocks
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];
