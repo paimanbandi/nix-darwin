@@ -23,7 +23,7 @@ return require("lazy").setup({
   require("plugins.numb"),
   require("plugins.dap"),
   require("plugins.git-conflict"),
-  require("plugins.snacks"),
+  require("plugins.image"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
