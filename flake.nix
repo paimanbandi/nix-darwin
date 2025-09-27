@@ -50,7 +50,8 @@
           caddy
           yamllint
           ntp
-          awscli2
+          awscli
+          # awscli2
           sshfs
           vscode-js-debug
           python314
@@ -60,6 +61,7 @@
           ripgrep-all
           openresolv
           swift-format
+          ueberzug
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];
