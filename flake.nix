@@ -14,7 +14,7 @@
 
   outputs = inputs@{ self, nix-darwin, nixpkgs, flake-utils, rust-overlay, home-manager }:
     let
-      system = "x86_64-darwin";
+      system = "aarch64-darwin";
       overlays = [ rust-overlay.overlays.default ];
       pkgs = import nixpkgs {
         inherit system overlays; 
@@ -22,6 +22,7 @@
       };
 
       configuration = { pkgs, ... }: {
+        nix.enable = false;
         environment.systemPackages = with pkgs; [
           lsd
           neofetch

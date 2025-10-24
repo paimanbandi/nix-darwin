@@ -40,13 +40,13 @@
 
       gri = "git rebase -i";
 
-      drs = "sudo darwin-rebuild switch --flake /etc/nix-darwin";
+      drs = "sudo darwin-rebuild switch --flake ~/.config/nix-darwin";
 
       nd  = "nvim .";
-      ndf = "cd /etc/nix-darwin && nvim flake.nix";
-      nhm = "cd /etc/nix-darwin && nvim home.nix";
-      nzr = "cd /etc/nix-darwin && nvim zsh.nix";
-      ncf = "cd /etc/nix-darwin && nvim nvim/";
+      ndf = "cd ~/.config/nix-darwin && nvim flake.nix";
+      nhm = "cd ~/.config/nix-darwin && nvim home.nix";
+      nzr = "cd ~/.config/nix-darwin && nvim zsh.nix";
+      ncf = "cd ~/.config/nix-darwin && nvim nvim/";
 
       cb  ="cargo build";
       cc  ="cargo clean";
