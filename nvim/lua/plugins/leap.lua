@@ -3,7 +3,11 @@ return {
   lazy = false,
   config = function()
     local leap = require('leap')
-    leap.add_default_mappings()
-    leap.opts.case_sensitive = true
+    vim.keymap.set({ 'n', 'x', 'o' }, '<leader>s', '<Plug>(leap-forward)')
+    vim.keymap.set({ 'n', 'x', 'o' }, '<leader>S', '<Plug>(leap-backward)')
+
+    leap.setup({
+      case_sensitive = true,
+    })
   end,
 }

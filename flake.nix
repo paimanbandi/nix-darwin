@@ -23,6 +23,21 @@
 
       configuration = { pkgs, ... }: {
         nix.enable = false;
+
+        system.primaryUser = "paiman";
+
+        homebrew = {
+          enable = true;
+          casks = [
+            "macfuse"
+          ];
+          onActivation = {
+            cleanup = "zap";
+            autoUpdate = true;
+            upgrade = true;
+          };
+        };
+
         environment.systemPackages = with pkgs; [
           lsd
           neofetch
