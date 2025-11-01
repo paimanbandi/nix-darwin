@@ -80,6 +80,8 @@
           chafa
           imagemagick
           luarocks
+          httrack
+          podman
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];

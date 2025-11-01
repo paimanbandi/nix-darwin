@@ -57,6 +57,8 @@
       smr = "sqlx migrate run";
       smi = "sqlx migrate info";
       smv = "sqlx migrate revert";
+
+      docker = "podman";
     };
 
     initContent = ''

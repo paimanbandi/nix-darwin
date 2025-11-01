@@ -21,5 +21,7 @@
     palette = 13=#c678dd
     palette = 14=#56b6c2
     palette = 15=#ffffff
+
+    command = ${pkgs.zsh}/bin/zsh
   '';
 }
