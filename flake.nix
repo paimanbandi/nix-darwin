@@ -81,8 +81,10 @@
           imagemagick
           luarocks
           httrack
-          podman
-          podman-compose
+          # podman
+          # podman-compose
+          docker
+          docker-compose
           postgresql
           sqlx-cli
         ];

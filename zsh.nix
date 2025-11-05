@@ -58,9 +58,9 @@
       smi = "sqlx migrate info";
       smv = "sqlx migrate revert";
 
-      docker = "podman";
-      dmi = "docker machine init";
-      dms = "docker machine start";
+      # docker = "podman";
+      # dmi = "docker machine init";
+      # dms = "docker machine start";
     };
 
     initContent = ''
