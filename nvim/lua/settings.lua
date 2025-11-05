@@ -8,7 +8,7 @@ opt.mouse = 'a'
 opt.clipboard = 'unnamedplus'
 
 opt.number = true
-opt.relativenumber = true
+opt.relativenumber = false
 opt.numberwidth = 8
 opt.tabstop = 2
 opt.shiftwidth = 2

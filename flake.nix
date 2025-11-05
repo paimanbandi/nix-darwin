@@ -82,6 +82,9 @@
           luarocks
           httrack
           podman
+          podman-compose
+          postgresql
+          sqlx-cli
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];
