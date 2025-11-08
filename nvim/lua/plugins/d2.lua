@@ -57,21 +57,37 @@ return {
       })
     end, {})
 
-    -- D2 Watch (auto-refresh)
-    vim.api.nvim_create_user_command("D2Watch", function()
+    -- D2 Watch (auto-refresh) - support sketch mode
+    vim.api.nvim_create_user_command("D2Watch", function(opts)
       local input, output = get_d2_paths()
+      local is_sketch = opts.args == "sketch"
+
+      local final_output = output
+      local cmd = "d2 --watch"
+
+      if is_sketch then
+        final_output = output:gsub("%.svg$", "-sketch.svg")
+        cmd = "d2 --sketch --watch"
+      end
 
       vim.cmd("split")
       vim.cmd("resize 12")
-      vim.cmd("terminal d2 --watch " .. vim.fn.shellescape(input) .. " " .. vim.fn.shellescape(output))
+      vim.cmd("terminal " .. cmd .. " " .. vim.fn.shellescape(input) .. " " .. vim.fn.shellescape(final_output))
       vim.cmd("startinsert")
 
       vim.defer_fn(function()
         vim.cmd("wincmd p")
       end, 1000)
 
-      vim.notify("D2 watch mode started", vim.log.levels.INFO)
-    end, {})
+      local mode_text = is_sketch and "sketch watch" or "watch"
+      vim.notify("D2 " .. mode_text .. " mode started - Open: " .. vim.fn.fnamemodify(final_output, ":t"),
+        vim.log.levels.INFO)
+    end, {
+      nargs = "?",
+      complete = function()
+        return { "sketch" }
+      end,
+    })
 
     -- D2 Theme (compile with theme)
     vim.api.nvim_create_user_command("D2Theme", function(opts)
@@ -147,6 +163,64 @@ return {
       end,
     })
 
+    -- D2 ASCII preview (render ke terminal)
+    vim.api.nvim_create_user_command("D2Ascii", function()
+      local input = vim.fn.expand("%:p")
+
+      vim.cmd("vsplit")
+      vim.cmd("enew")
+      vim.cmd("setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile")
+      vim.cmd("setlocal filetype=d2ascii")
+      vim.api.nvim_buf_set_name(0, "[D2 ASCII Preview]")
+
+      vim.fn.jobstart({ "d2", "--layout", "elk", "--output-format", "ascii", input }, {
+        stdout_buffered = true,
+        on_stdout = function(_, data)
+          if data then
+            vim.api.nvim_buf_set_lines(0, 0, -1, false, data)
+          end
+        end,
+        on_exit = function(_, code)
+          if code == 0 then
+            vim.notify("✓ ASCII diagram rendered", vim.log.levels.INFO)
+          else
+            vim.notify("✗ ASCII render failed", vim.log.levels.ERROR)
+          end
+        end,
+      })
+    end, {})
+
+    -- D2 Sketch (render .svg dengan mode sketsa)
+    vim.api.nvim_create_user_command("D2Sketch", function()
+      local input, output = get_d2_paths()
+      local sketch_output = output:gsub("%.svg$", "-sketch.svg")
+
+      vim.notify("Rendering sketch...", vim.log.levels.INFO)
+
+      vim.fn.jobstart({ "d2", "--sketch", input, sketch_output }, {
+        on_exit = function(_, code)
+          if code == 0 then
+            vim.notify("✓ Sketch rendered: " .. vim.fn.fnamemodify(sketch_output, ":t"), vim.log.levels.INFO)
+
+            -- Open result
+            local open_cmd
+            if vim.fn.has("mac") == 1 then
+              open_cmd = "open"
+            elseif vim.fn.has("unix") == 1 then
+              open_cmd = "xdg-open"
+            elseif vim.fn.has("win32") == 1 then
+              open_cmd = "start"
+            end
+            if open_cmd then
+              vim.fn.jobstart({ open_cmd, sketch_output }, { detach = true })
+            end
+          else
+            vim.notify("✗ Sketch render failed", vim.log.levels.ERROR)
+          end
+        end,
+      })
+    end, {})
+
     -- Auto-compile on save
     vim.api.nvim_create_autocmd("BufWritePost", {
       pattern = "*.d2",
@@ -167,13 +241,16 @@ return {
         vim.keymap.set("n", "<leader>dw", ":D2Watch<CR>",
           vim.tbl_extend("force", opts, { desc = "D2: Watch" }))
 
+        vim.keymap.set("n", "<leader>dW", ":D2Watch sketch<CR>",
+          vim.tbl_extend("force", opts, { desc = "D2: Watch (Sketch)" }))
+
         vim.keymap.set("n", "<leader>dc", ":D2Render<CR>",
           vim.tbl_extend("force", opts, { desc = "D2: Compile" }))
 
         -- Quick theme shortcuts
         for _, theme in ipairs({ "0", "1", "3", "4", "5", "6", "7", "8" }) do
           vim.keymap.set("n", "<leader>d" .. theme, ":D2Theme " .. theme .. "<CR>",
-            vim.tbl_extend("force", opts, { desc = "D2: Theme " .. theme }))
+            vm.tbl_extend("force", opts, { desc = "D2: Theme " .. theme }))
         end
 
         -- Layout shortcuts
@@ -183,6 +260,11 @@ return {
           vim.tbl_extend("force", opts, { desc = "D2: Layout ELK" }))
         vim.keymap.set("n", "<leader>dlt", ":D2Layout tala<CR>",
           vim.tbl_extend("force", opts, { desc = "D2: Layout TALA" }))
+
+        vim.keymap.set("n", "<leader>da", ":D2Ascii<CR>",
+          vim.tbl_extend("force", opts, { desc = "D2: ASCII preview" }))
+        vim.keymap.set("n", "<leader>ds", ":D2Sketch<CR>",
+          vim.tbl_extend("force", opts, { desc = "D2: Sketch render" }))
       end,
     })
 
