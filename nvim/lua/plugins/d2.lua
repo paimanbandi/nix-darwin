@@ -231,7 +231,7 @@ return {
         on_exit = function(_, code)
           if code == 0 then
             vim.notify("✓ PNG rendered, converting to GIF...", vim.log.levels.INFO)
-            vim.fn.jobstart({ "convert", png_output, gif_output }, {
+            vim.fn.jobstart({ "/run/current-system/sw/bin/magick", png_output, gif_output }, {
               on_exit = function(_, convert_code)
                 if convert_code == 0 then
                   vim.notify("✓ GIF created: " .. vim.fn.fnamemodify(gif_output, ":t"), vim.log.levels.INFO)
@@ -247,7 +247,10 @@ return {
                     vim.fn.jobstart({ open_cmd, gif_output }, { detach = true })
                   end
                 else
-                  vim.notify("✗ Install ImageMagick: brew install imagemagick", vim.log.levels.ERROR)
+                  if vim.fn.executable("/run/current-system/sw/bin/magick") == 0 then
+                    vim.notify("Install ImageMagick!", vim.log.levels.ERROR)
+                    return
+                  end
                 end
               end,
             })
@@ -259,7 +262,8 @@ return {
     end, {
       nargs = "?",
       complete = function()
-        return { "animate", "sketch", "theme=0", "theme=1", "theme=3", "theme=4", "layout=elk", "layout=dagre", "layout=tala" }
+        return { "animate", "sketch", "theme=0", "theme=1", "theme=3", "theme=4", "layout=elk", "layout=dagre",
+          "layout=tala" }
       end,
     })
 
@@ -278,17 +282,20 @@ return {
         local opts = { buffer = true, silent = true }
         vim.keymap.set("n", "<leader>dp", ":D2Preview<CR>", vim.tbl_extend("force", opts, { desc = "D2: Preview" }))
         vim.keymap.set("n", "<leader>dw", ":D2Watch<CR>", vim.tbl_extend("force", opts, { desc = "D2: Watch" }))
-        vim.keymap.set("n", "<leader>dW", ":D2Watch sketch<CR>", vim.tbl_extend("force", opts, { desc = "D2: Watch Sketch" }))
+        vim.keymap.set("n", "<leader>dW", ":D2Watch sketch<CR>",
+          vim.tbl_extend("force", opts, { desc = "D2: Watch Sketch" }))
         vim.keymap.set("n", "<leader>dc", ":D2Render<CR>", vim.tbl_extend("force", opts, { desc = "D2: Compile" }))
         vim.keymap.set("n", "<leader>da", ":D2Ascii<CR>", vim.tbl_extend("force", opts, { desc = "D2: ASCII" }))
         vim.keymap.set("n", "<leader>ds", ":D2Sketch<CR>", vim.tbl_extend("force", opts, { desc = "D2: Sketch" }))
         vim.keymap.set("n", "<leader>dg", ":D2Gif<CR>", vim.tbl_extend("force", opts, { desc = "D2: GIF" }))
-        vim.keymap.set("n", "<leader>dG", ":D2Gif animate sketch<CR>", vim.tbl_extend("force", opts, { desc = "D2: GIF Animated" }))
-        
+        vim.keymap.set("n", "<leader>dG", ":D2Gif animate sketch<CR>",
+          vim.tbl_extend("force", opts, { desc = "D2: GIF Animated" }))
+
         for _, theme in ipairs({ "0", "1", "3", "4", "5", "6", "7", "8" }) do
-          vim.keymap.set("n", "<leader>d" .. theme, ":D2Theme " .. theme .. "<CR>", vim.tbl_extend("force", opts, { desc = "D2: Theme " .. theme }))
+          vim.keymap.set("n", "<leader>d" .. theme, ":D2Theme " .. theme .. "<CR>",
+            vim.tbl_extend("force", opts, { desc = "D2: Theme " .. theme }))
         end
-        
+
         vim.keymap.set("n", "<leader>dld", ":D2Layout dagre<CR>", vim.tbl_extend("force", opts, { desc = "D2: Dagre" }))
         vim.keymap.set("n", "<leader>dle", ":D2Layout elk<CR>", vim.tbl_extend("force", opts, { desc = "D2: ELK" }))
         vim.keymap.set("n", "<leader>dlt", ":D2Layout tala<CR>", vim.tbl_extend("force", opts, { desc = "D2: TALA" }))
