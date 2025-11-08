@@ -17,3 +17,4 @@ opt.smartindent = true
 opt.termguicolors = true
 
 opt.updatetime = 300
+opt.signcolumn = "yes"

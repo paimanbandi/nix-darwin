@@ -88,7 +88,6 @@
           colima
           postgresql
           sqlx-cli
-          yarn
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];

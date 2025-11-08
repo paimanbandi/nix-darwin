@@ -6,15 +6,32 @@ return {
       "nvim-neotest/nvim-nio",
       "theHamsta/nvim-dap-virtual-text",
       "mxsdev/nvim-dap-vscode-js",
+      "LiadOz/nvim-dap-repl-highlights",
     },
     config = function()
       local dap = require("dap")
       local dapui = require("dapui")
 
-      -- Setup UI
-      dapui.setup()
-      require("nvim-dap-virtual-text").setup()
+      -- === dap-ui setup ===
+      dapui.setup({
+        controls = {
+          enabled = true,
+          element = "repl",
+        },
+      })
 
+      -- === virtual text setup ===
+      require("nvim-dap-virtual-text").setup({
+        commented = true,      -- tampilkan nilai di samping code
+        virt_text_pos = "eol", -- di akhir baris
+        highlight_changed_variables = true,
+        all_references = false,
+      })
+
+      -- === repl highlight setup ===
+      require("nvim-dap-repl-highlights").setup()
+
+      -- buka UI otomatis saat mulai debug
       dap.listeners.after.event_initialized["dapui_config"] = function()
         dapui.open()
       end
@@ -25,7 +42,7 @@ return {
         dapui.close()
       end
 
-      -- Setup vscode-js-debug
+      -- === vscode-js-debug setup ===
       require("dap-vscode-js").setup({
         debugger_path = vim.fn.stdpath("data") .. "/lazy/vscode-js-debug",
         adapters = { "pwa-node", "pwa-chrome", "node-terminal", "pwa-extensionHost" },
@@ -51,16 +68,19 @@ return {
       end
     end,
   },
+
+  -- vscode-js-debug dependency
   {
     "microsoft/vscode-js-debug",
     build = "npm install --legacy-peer-deps && npm run compile",
     version = "1.*",
   },
+
+  -- Go debugger
   {
     "leoluz/nvim-dap-go",
     config = function()
       require("dap-go").setup()
-      -- optional keymaps
       vim.keymap.set("n", "<leader>dt", function()
         require("dap-go").debug_test()
       end, { desc = "Debug Go test" })
