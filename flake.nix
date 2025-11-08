@@ -88,6 +88,8 @@
           colima
           postgresql
           sqlx-cli
+          d2
+          mermaid-cli
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];

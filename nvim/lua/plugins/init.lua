@@ -24,6 +24,7 @@ return require("lazy").setup({
   require("plugins.dap"),
   require("plugins.git-conflict"),
   require("plugins.overseer"),
+  require("plugins.d2"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
