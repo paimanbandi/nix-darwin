@@ -23,6 +23,7 @@ return require("lazy").setup({
   require("plugins.numb"),
   require("plugins.dap"),
   require("plugins.git-conflict"),
+  require("plugins.overseer"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
