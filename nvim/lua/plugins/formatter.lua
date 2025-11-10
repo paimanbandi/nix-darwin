@@ -20,7 +20,9 @@ return {
         swift_format = {
           command = "/run/current-system/sw/bin/swift_format",
         },
-
+        nixfmt = {
+          command = "/run/current-system/sw/bin/nixfmt",
+        },
       },
       formatters_by_ft = {
         lua = { "stylua" },
@@ -38,6 +40,7 @@ return {
         go = { "gofmt" },
         dockerfile = { "lsp" },
         swift = { "swift_format" },
+        nix = { "nixfmt" },
       },
       format_on_save = function(bufnr)
         local ignore_filetypes = { "sql" }
