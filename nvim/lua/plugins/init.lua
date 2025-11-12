@@ -25,6 +25,7 @@ return require("lazy").setup({
   require("plugins.git-conflict"),
   require("plugins.overseer"),
   require("plugins.d2"),
+  require("plugins.yazi"),
 }, {
   install = { missing = false },
   checker = { enabled = false },

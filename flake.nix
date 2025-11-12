@@ -155,6 +155,9 @@
 
             # Web scraping
             httrack
+
+            # File Manager
+            yazi
           ];
 
           nix.settings.experimental-features = [
