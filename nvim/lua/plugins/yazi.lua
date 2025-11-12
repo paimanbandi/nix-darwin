@@ -3,12 +3,12 @@ return {
   event = "VeryLazy",
   keys = {
     {
-      "<leader>y",
+      "<leader>fm",
       "<cmd>Yazi<cr>",
       desc = "Open yazi file manager",
     },
     {
-      "<leader>Y",
+      "<leader>fM",
       "<cmd>Yazi cwd<cr>",
       desc = "Open yazi in current working directory",
     },
