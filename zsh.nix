@@ -69,10 +69,15 @@
       # --- End Ghostty title ---
 
       # --- Function override for nd ---
-      function nd() {
+      function n() {
         print -Pn "\e]0;$(basename $PWD)\a"   # set judul ke nama folder sebelum nvim
         export NVIM_NO_TITLE=1
         nvim "$@"
+      }
+      function nd() {
+        print -Pn "\e]0;$(basename $PWD)\a"   # set judul ke nama folder sebelum nvim
+        export NVIM_NO_TITLE=1
+        nvim .
       }
       # --- End nd function ---
     '';
