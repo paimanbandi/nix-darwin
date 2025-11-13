@@ -33,7 +33,6 @@
       gft = "git fetch --tags";
       gri = "git rebase -i";
       drs = "sudo darwin-rebuild switch --flake ~/.config/nix-darwin";
-      nd = "NVIM_NO_TITLE=1 nvim .";
       ndf = "cd ~/.config/nix-darwin && nvim flake.nix";
       nhm = "cd ~/.config/nix-darwin && nvim home.nix";
       nzr = "cd ~/.config/nix-darwin && nvim zsh.nix";

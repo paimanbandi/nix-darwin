@@ -23,5 +23,7 @@
     palette = 15=#ffffff
 
     command = ${pkgs.zsh}/bin/zsh
+
+    auto-title = false
   '';
 }
