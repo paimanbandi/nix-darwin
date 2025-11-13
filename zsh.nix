@@ -70,6 +70,7 @@
 
       # --- Function override for nd ---
       function nd() {
+        print -Pn "\e]0;$(basename $PWD)\a"   # set judul ke nama folder sebelum nvim
         export NVIM_NO_TITLE=1
         nvim "$@"
       }
