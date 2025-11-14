@@ -11,8 +11,5 @@ k.set('n', '<leader><leader>', ':b#<CR>', { silent = true })
 k.set("n", "<leader>dl", vim.diagnostic.setloclist, { desc = "Show diagnostics in loclist" })
 
 k.set("n", "<leader>mm", ":!markmap % -o<CR>", { silent = true })
-k.set("n", "<leader>n", ":set number!<CR>", { silent = true })
-k.set("n", "<leader>r", ":set relativenumber!<CR>", { silent = true })
 
-k.set("n", "<leader>dp", ":D2Preview<CR>", { desc = "D2 Preview" })
-k.set("n", "<leader>dw", ":D2Watch<CR>", { desc = "D2 Watch" })
+k.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Clear search highlights' })
