@@ -9,11 +9,11 @@ return {
       return input, output
     end
 
-    -- D2 Render (compile)
+    -- D2 Render (compile) with padding
     vim.api.nvim_create_user_command("D2Render", function()
       local input, output = get_d2_paths()
       vim.notify("Compiling D2...", vim.log.levels.INFO)
-      vim.fn.jobstart({ "d2", input, output }, {
+      vim.fn.jobstart({ "d2", "--pad", "100", input, output }, {
         on_exit = function(_, code)
           if code == 0 then
             vim.notify("✓ Rendered: " .. vim.fn.fnamemodify(output, ":t"), vim.log.levels.INFO)
@@ -24,11 +24,11 @@ return {
       })
     end, {})
 
-    -- D2 Preview (compile + open)
+    -- D2 Preview (compile + open) with padding
     vim.api.nvim_create_user_command("D2Preview", function()
       local input, output = get_d2_paths()
       vim.notify("Compiling D2...", vim.log.levels.INFO)
-      vim.fn.jobstart({ "d2", input, output }, {
+      vim.fn.jobstart({ "d2", "--pad", "100", input, output }, {
         on_exit = function(_, code)
           if code == 0 then
             vim.notify("✓ Compiled", vim.log.levels.INFO)
@@ -50,15 +50,15 @@ return {
       })
     end, {})
 
-    -- D2 Watch (auto-refresh)
+    -- D2 Watch (auto-refresh) with padding
     vim.api.nvim_create_user_command("D2Watch", function(opts)
       local input, output = get_d2_paths()
       local is_sketch = opts.args == "sketch"
       local final_output = output
-      local cmd = "d2 --watch"
+      local cmd = "d2 --pad 100 --watch"
       if is_sketch then
         final_output = output:gsub("%.svg$", "-sketch.svg")
-        cmd = "d2 --sketch --watch"
+        cmd = "d2 --pad 100 --sketch --watch"
       end
       vim.cmd("split")
       vim.cmd("resize 12")
@@ -76,12 +76,12 @@ return {
       end,
     })
 
-    -- D2 Theme
+    -- D2 Theme with padding
     vim.api.nvim_create_user_command("D2Theme", function(opts)
       local input, output = get_d2_paths()
       local theme = opts.args
       vim.notify("Compiling with theme " .. theme .. "...", vim.log.levels.INFO)
-      vim.fn.jobstart({ "d2", "--theme", theme, input, output }, {
+      vim.fn.jobstart({ "d2", "--pad", "100", "--theme", theme, input, output }, {
         on_exit = function(_, code)
           if code == 0 then
             vim.notify("✓ Theme " .. theme .. " applied", vim.log.levels.INFO)
@@ -108,12 +108,12 @@ return {
       end,
     })
 
-    -- D2 Layout
+    -- D2 Layout with padding
     vim.api.nvim_create_user_command("D2Layout", function(opts)
       local input, output = get_d2_paths()
       local layout = opts.args
       vim.notify("Compiling with " .. layout .. " layout...", vim.log.levels.INFO)
-      vim.fn.jobstart({ "d2", "--layout", layout, input, output }, {
+      vim.fn.jobstart({ "d2", "--pad", "100", "--layout", layout, input, output }, {
         on_exit = function(_, code)
           if code == 0 then
             vim.notify("✓ Layout " .. layout .. " applied", vim.log.levels.INFO)
@@ -165,12 +165,12 @@ return {
       })
     end, {})
 
-    -- D2 Sketch
+    -- D2 Sketch with padding
     vim.api.nvim_create_user_command("D2Sketch", function()
       local input, output = get_d2_paths()
       local sketch_output = output:gsub("%.svg$", "-sketch.svg")
       vim.notify("Rendering sketch...", vim.log.levels.INFO)
-      vim.fn.jobstart({ "d2", "--sketch", input, sketch_output }, {
+      vim.fn.jobstart({ "d2", "--pad", "100", "--sketch", input, sketch_output }, {
         on_exit = function(_, code)
           if code == 0 then
             vim.notify("✓ Sketch rendered: " .. vim.fn.fnamemodify(sketch_output, ":t"), vim.log.levels.INFO)
@@ -192,13 +192,13 @@ return {
       })
     end, {})
 
-    -- D2 GIF Export
+    -- D2 GIF Export with padding
     vim.api.nvim_create_user_command("D2Gif", function(opts)
       local input, output = get_d2_paths()
       local png_output = output:gsub("%.svg$", ".png")
       local gif_output = output:gsub("%.svg$", ".gif")
       local args = vim.split(opts.args or "", "%s+")
-      local cmd_args = { "d2" }
+      local cmd_args = { "d2", "--pad", "100" }
 
       if vim.tbl_contains(args, "animate") then
         table.insert(cmd_args, "--animate-interval")
