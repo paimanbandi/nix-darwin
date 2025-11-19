@@ -36,6 +36,14 @@
 
           system.primaryUser = "paiman";
 
+          i18n = {
+            defaultLocale = "es_ES.UTF-8";
+            extraLocaleSettings = {
+              LC_TIME = "es_ES.UTF-8";
+              LC_MONETARY = "es_ES.UTF-8";
+            };
+          };
+
           homebrew = {
             enable = true;
             casks = [
