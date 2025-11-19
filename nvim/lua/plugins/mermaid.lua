@@ -17,6 +17,9 @@ return {
           end
         }
       })
+      vim.keymap.set("n", "<leader>mp", ":MarkdownPreview<CR>", { desc = "Mermaid/Markdown Preview" })
+      vim.keymap.set("n", "<leader>ms", ":MarkdownPreviewStop<CR>", { desc = "Stop Mermaid Preview" })
+      vim.keymap.set("n", "<leader>mt", ":MarkdownPreviewToggle<CR>", { desc = "Toggle Mermaid Preview" })
     end
   }
 }
