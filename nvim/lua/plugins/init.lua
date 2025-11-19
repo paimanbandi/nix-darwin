@@ -27,6 +27,7 @@ return require("lazy").setup({
   require("plugins.overseer"),
   require("plugins.d2"),
   require("plugins.yazi"),
+  require("plugins.mermaid"),
 }, {
   install = { missing = false },
   checker = { enabled = false },

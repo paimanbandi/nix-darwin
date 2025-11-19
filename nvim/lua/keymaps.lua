@@ -14,6 +14,6 @@ k.set("n", "<leader>mm", ":!markmap % -o<CR>", { silent = true })
 
 k.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Clear search highlights' })
 
-k.set("n", "<leader>mp", ":MarkdownPreview<CR>", { desc = "Mermaid/Markdown Preview" })
-k.set("n", "<leader>ms", ":MarkdownPreviewStop<CR>", { desc = "Stop Mermaid Preview" })
-k.set("n", "<leader>mt", ":MarkdownPreviewToggle<CR>", { desc = "Toggle Mermaid Preview" })
+-- k.set("n", "<leader>mp", ":MarkdownPreview<CR>", { desc = "Mermaid/Markdown Preview" })
+-- k.set("n", "<leader>ms", ":MarkdownPreviewStop<CR>", { desc = "Stop Mermaid Preview" })
+-- k.set("n", "<leader>mt", ":MarkdownPreviewToggle<CR>", { desc = "Toggle Mermaid Preview" })
