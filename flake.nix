@@ -138,6 +138,7 @@
             # Database
             postgresql
             sqlx-cli
+            redis
 
             # Debugging
             vscode-js-debug
