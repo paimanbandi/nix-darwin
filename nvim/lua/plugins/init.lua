@@ -28,9 +28,10 @@ return require("lazy").setup({
   require("plugins.d2"),
   require("plugins.yazi"),
   require("plugins.mermaid"),
-  require("plugins.smear-cursor"),
+  -- require("plugins.smear-cursor"),
   require("plugins.ultra-effects"),
-  require("plugins.smooth-gutter"),
+  -- require("plugins.smear-cursor"),
+  require("plugins.smooth-cursor"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
