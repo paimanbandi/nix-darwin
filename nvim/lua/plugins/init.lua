@@ -29,6 +29,7 @@ return require("lazy").setup({
   require("plugins.yazi"),
   require("plugins.mermaid"),
   require("plugins.smear-cursor"),
+  require("plugins.ultra-effects"),
 }, {
   install = { missing = false },
   checker = { enabled = false },

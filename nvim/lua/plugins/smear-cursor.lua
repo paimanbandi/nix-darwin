@@ -13,74 +13,83 @@ return {
       smear_between_buffers = true,
       smear_between_neighbor_lines = true,
 
-      -- SMOOTH SETTINGS
-      stiffness = 0.4,           -- Lower = trail lebih panjang & smooth (default: 0.6)
-      trailing_stiffness = 0.15, -- Lower = fade out lebih gradual (default: 0.3)
-      trailing_exponent = 0.05,  -- Lower = trail lebih halus (default: 0.1)
+      -- INSANE SMOOTH SETTINGS! 🔥
+      stiffness = 0.15,          -- Super low = trail panjang banget & ultra smooth
+      trailing_stiffness = 0.05, -- Fade out super gradual
+      trailing_exponent = 0.01,  -- Curve super halus kayak air
 
-      -- Smoothness & quality
-      gamma = 1.2, -- Slightly higher = smoother gradient (default: 1.0)
+      -- Smoothness maximum
+      gamma = 1.5, -- Higher = gradient super smooth
 
-      -- Distance calculation
-      distance_stop_animating = 0.05, -- Lower = animasi lebih sering (default: 0.1)
+      -- Distance sensitivity
+      distance_stop_animating = 0.01, -- Super sensitive = animasi terus menerus
 
-      -- Hide cursor saat idle (opsional)
+      -- Hide cursor saat idle
       hide_target_hack = false,
 
       -- Legacy support
       legacy_computing_symbols_support = false,
     })
 
-    -- Enhanced fire gradient highlights
+    -- Ultra smooth fire gradient highlights dengan transparency
     vim.cmd([[
-      " Normal mode - Orange fire
-      highlight SmearCursor guibg=#ff4500 guifg=#ffffff gui=bold blend=30
+      " Normal mode - Orange fire dengan blur effect
+      highlight SmearCursor guibg=#ff4500 guifg=#ffffff gui=bold blend=40
 
       " Insert mode - Yellow/gold flame
-      highlight SmearCursorInsert guibg=#ffd700 guifg=#000000 gui=bold blend=30
+      highlight SmearCursorInsert guibg=#ffd700 guifg=#000000 gui=bold blend=40
 
       " Visual mode - Red hot flame
-      highlight SmearCursorVisual guibg=#ff0000 guifg=#ffffff gui=bold blend=30
+      highlight SmearCursorVisual guibg=#ff0000 guifg=#ffffff gui=bold blend=40
 
-      " Optional: Custom cursor line untuk tambah efek
-      highlight CursorLine guibg=#1a1a2e blend=20
+      " Cursor styling untuk rounded look (gak kotak)
+      highlight Cursor guibg=#ff4500 guifg=#ffffff gui=NONE blend=0
+      highlight CursorLine guibg=NONE blend=0
       highlight CursorLineNr guifg=#ff4500 gui=bold
+
+      " Terminal cursor shape untuk rounded
+      set guicursor=n-v-c:block-Cursor/lCursor,i-ci-ve:ver25-Cursor/lCursor,r-cr:hor20-Cursor/lCursor
     ]])
 
-    -- Keybindings untuk adjust smoothness on-the-fly
+    -- Advanced keybindings
+    vim.keymap.set('n', '<leader>t0', function()
+      -- INSANE mode (trail gila-gilaan!)
+      require('smear_cursor').setup({
+        stiffness = 0.08,
+        trailing_stiffness = 0.02,
+        trailing_exponent = 0.005,
+        gamma = 2.0,
+        distance_stop_animating = 0.005,
+      })
+      vim.notify("🔥 INSANE MODE ACTIVATED! 🔥", vim.log.levels.WARN)
+    end, { desc = 'Smear: INSANE Mode' })
+
     vim.keymap.set('n', '<leader>t1', function()
-      -- Subtle mode (trail pendek)
+      -- Subtle mode
       require('smear_cursor').setup({
         stiffness = 0.7,
         trailing_stiffness = 0.4,
         trailing_exponent = 0.2,
+        gamma = 1.0,
+        distance_stop_animating = 0.1,
       })
       vim.notify("Smear: Subtle mode", vim.log.levels.INFO)
     end, { desc = 'Smear: Subtle' })
 
     vim.keymap.set('n', '<leader>t2', function()
-      -- Balanced mode (default smooth)
+      -- Ultra smooth mode (recommended)
       require('smear_cursor').setup({
-        stiffness = 0.4,
-        trailing_stiffness = 0.15,
-        trailing_exponent = 0.05,
-      })
-      vim.notify("Smear: Balanced mode", vim.log.levels.INFO)
-    end, { desc = 'Smear: Balanced' })
-
-    vim.keymap.set('n', '<leader>t3', function()
-      -- Dramatic mode (trail panjang banget!)
-      require('smear_cursor').setup({
-        stiffness = 0.2,
+        stiffness = 0.15,
         trailing_stiffness = 0.05,
         trailing_exponent = 0.01,
+        gamma = 1.5,
+        distance_stop_animating = 0.01,
       })
-      vim.notify("Smear: Dramatic mode", vim.log.levels.INFO)
-    end, { desc = 'Smear: Dramatic' })
+      vim.notify("✨ Ultra Smooth mode", vim.log.levels.INFO)
+    end, { desc = 'Smear: Ultra Smooth' })
 
     vim.keymap.set('n', '<leader>ts', function()
       require('smear_cursor').toggle()
-      vim.notify("Smear cursor toggled", vim.log.levels.INFO)
     end, { desc = 'Toggle Smear Cursor' })
   end,
 }
