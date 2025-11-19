@@ -1,43 +1,4 @@
 return {
-  -- 1. Mini.animate - Smooth scrolling & movements
-  {
-    "echasnovski/mini.animate",
-    event = "VeryLazy",
-    config = function()
-      local animate = require("mini.animate")
-      animate.setup({
-        cursor = {
-          enable = false, -- Disable, pakai smear-cursor
-        },
-        scroll = {
-          enable = true,
-          -- Super smooth scroll
-          timing = animate.gen_timing.cubic({ duration = 250, unit = "total" }),
-          subscroll = animate.gen_subscroll.equal({
-            predicate = function(total_scroll)
-              return total_scroll > 1
-            end,
-            max_output_steps = 120, -- Higher = smoother
-          }),
-        },
-        resize = {
-          enable = true,
-          timing = animate.gen_timing.cubic({ duration = 150, unit = "total" }),
-        },
-        open = {
-          enable = true,
-          timing = animate.gen_timing.cubic({ duration = 150, unit = "total" }),
-          winconfig = animate.gen_winconfig.wipe({ direction = "from_edge" }),
-        },
-        close = {
-          enable = true,
-          timing = animate.gen_timing.cubic({ duration = 150, unit = "total" }),
-          winconfig = animate.gen_winconfig.wipe({ direction = "to_edge" }),
-        },
-      })
-    end,
-  },
-
   -- 2. Beacon - Flash super smooth saat jump
   {
     "danilamihailov/beacon.nvim",
@@ -56,41 +17,6 @@ return {
         highlight Beacon guibg=#ff4500 ctermbg=red gui=bold blend=50
         highlight BeaconDefault guibg=#ff6347 ctermbg=red blend=50
       ]])
-    end,
-  },
-
-  -- 3. Indent-blankline - Smooth indent guides
-  {
-    "lukas-reineke/indent-blankline.nvim",
-    main = "ibl",
-    event = { "BufReadPost", "BufNewFile" },
-    config = function()
-      local highlight = {
-        "RainbowRed",
-        "RainbowOrange",
-        "RainbowYellow",
-      }
-
-      local hooks = require("ibl.hooks")
-      hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
-        vim.api.nvim_set_hl(0, "RainbowRed", { fg = "#ff0000", blend = 30 })
-        vim.api.nvim_set_hl(0, "RainbowOrange", { fg = "#ff4500", blend = 30 })
-        vim.api.nvim_set_hl(0, "RainbowYellow", { fg = "#ffd700", blend = 30 })
-      end)
-
-      require("ibl").setup({
-        indent = {
-          char = "▏", -- Thin line untuk smooth look
-          tab_char = "▏",
-          highlight = highlight,
-        },
-        scope = {
-          enabled = true,
-          show_start = false,
-          show_end = false,
-          highlight = highlight,
-        },
-      })
     end,
   },
 

@@ -17,19 +17,19 @@ opt.smartindent = true
 opt.termguicolors = true
 opt.cursorline = false
 
-opt.updatetime = 50
+opt.updatetime = 300
 opt.timeoutlen = 300
 opt.signcolumn = "yes"
 
 -- Smooth scrolling behavior
-vim.opt.scrolloff = 8        -- Keep cursor centered
+vim.opt.scrolloff = 8       -- Keep cursor centered
 vim.opt.sidescrolloff = 8
-vim.opt.smoothscroll = true  -- Native smooth scroll (Neovim 0.10+)
+vim.opt.smoothscroll = true -- Native smooth scroll (Neovim 0.10+)
 
 -- Reduce visual clutter untuk smooth appearance
 vim.opt.cmdheight = 1
-vim.opt.laststatus = 3       -- Global statusline (cleaner)
-vim.opt.showmode = false     -- Hide mode (noice handles this)
+vim.opt.laststatus = 3   -- Global statusline (cleaner)
+vim.opt.showmode = false -- Hide mode (noice handles this)
 
 -- Better rendering
 vim.opt.conceallevel = 0

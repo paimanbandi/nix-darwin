@@ -30,6 +30,7 @@ return require("lazy").setup({
   require("plugins.mermaid"),
   require("plugins.smear-cursor"),
   require("plugins.ultra-effects"),
+  require("plugins.smooth-gutter"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
