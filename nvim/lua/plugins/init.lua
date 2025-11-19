@@ -28,6 +28,7 @@ return require("lazy").setup({
   require("plugins.d2"),
   require("plugins.yazi"),
   require("plugins.mermaid"),
+  require("plugins.smear-cursor"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
