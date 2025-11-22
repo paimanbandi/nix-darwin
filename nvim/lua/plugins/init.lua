@@ -36,6 +36,7 @@ return require("lazy").setup({
   require("plugins.refactoring"),
   require("plugins.spectre"),
   require("plugins.todo"),
+  require("plugins.dropbar"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
