@@ -30,6 +30,8 @@ return require("lazy").setup({
   require("plugins.ultra-effects"),
   require("plugins.smear-cursor"),
   require("plugins.rust"),
+  require("plugins.aerial"),
+  require("plugins.blamer"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
