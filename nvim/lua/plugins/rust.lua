@@ -7,7 +7,7 @@ return {
       vim.g.rustaceanvim = {
         server = {
           on_attach = function(_, bufnr)
-            -- keymap opsional contoh
+            vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
             local opts = { buffer = bufnr, silent = true }
             vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
             vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
