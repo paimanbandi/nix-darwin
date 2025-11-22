@@ -32,6 +32,10 @@ return require("lazy").setup({
   require("plugins.rust"),
   require("plugins.aerial"),
   require("plugins.blamer"),
+  require("plugins.grug-far"),
+  require("plugins.refactoring"),
+  require("plugins.spectre"),
+  require("plugins.todo"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
