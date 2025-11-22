@@ -1,10 +1,21 @@
 return {
   "Bekaboo/dropbar.nvim",
-  dependencies = { "nvim-telescope/telescope-fzf-native.nvim" },
-  config = function()
-    require("dropbar").setup()
-    vim.keymap.set("n", "<leader>bd", function()
-      require("dropbar.api").pick() -- buka breadcrumb picker
-    end, { desc = "Dropbar picker" })
-  end
+  event = { "BufReadPost", "BufNewFile" },
+  dependencies = {
+    "nvim-telescope/telescope-fzf-native.nvim",
+  },
+  opts = {
+    general = {
+      enable = true,
+    },
+    icons = {
+      enable = true,
+      kinds = {
+        use_devicons = true,
+      },
+    },
+  },
+  config = function(_, opts)
+    require("dropbar").setup(opts)
+  end,
 }
