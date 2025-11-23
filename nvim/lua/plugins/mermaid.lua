@@ -47,36 +47,56 @@ return {
       {
         "<leader>me",
         function()
-          -- Cari mermaid block
           local start_line = vim.fn.search("```mermaid", "bnW")
           local end_line = vim.fn.search("```", "nW")
 
           if start_line > 0 and end_line > 0 then
-            -- Ambil lines mermaid (skip ```mermaid line)
             local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line - 1, false)
-
-            -- Temporary file
             local temp_file = "/tmp/mermaid_temp.mmd"
             local output_file = vim.fn.expand("%:p:h") .. "/diagram_" .. os.time() .. ".png"
 
-            -- Write to temp file
             vim.fn.writefile(lines, temp_file)
 
-            -- Export dengan mmdc (sudah ada di Nix)
+            -- Auto-detect Chrome
+            local chrome_paths = {
+              "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+              "/Applications/Arc.app/Contents/MacOS/Arc",
+              "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+              vim.fn.expand(
+                "~/.cache/puppeteer/chrome/mac_arm-*/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"),
+            }
+
+            local chrome_path = nil
+            for _, path in ipairs(chrome_paths) do
+              -- Expand glob patterns
+              local expanded = vim.fn.glob(path)
+              if expanded ~= "" and vim.fn.filereadable(expanded) == 1 then
+                chrome_path = expanded
+                break
+              end
+            end
+
+            if not chrome_path then
+              vim.notify("Chrome not found! Please install Chrome, Arc, or Brave browser", vim.log.levels.ERROR)
+              vim.notify("Or run: npx puppeteer browsers install chrome", vim.log.levels.INFO)
+              return
+            end
+
             local cmd = string.format(
-              "mmdc -i %s -o %s -t dark -b transparent --scale 3 --width 2400 --height 2400",
-              temp_file,
-              output_file
+              "PUPPETEER_EXECUTABLE_PATH='%s' mmdc -i %s -o %s -t dark -b transparent --scale 3 2>&1",
+              chrome_path,
+              vim.fn.shellescape(temp_file),
+              vim.fn.shellescape(output_file)
             )
 
-            vim.fn.system(cmd)
+            vim.notify("Exporting with Chrome at: " .. chrome_path, vim.log.levels.INFO)
+            local output = vim.fn.system(cmd)
 
             if vim.v.shell_error == 0 then
               vim.notify("Exported to: " .. output_file, vim.log.levels.INFO)
-              -- Optional: buka file dengan preview
-              vim.fn.system("open " .. output_file)
+              vim.fn.system("open " .. vim.fn.shellescape(output_file))
             else
-              vim.notify("Export failed!", vim.log.levels.ERROR)
+              vim.notify("Export failed! Error: " .. output, vim.log.levels.ERROR)
             end
           else
             vim.notify("No mermaid block found at cursor", vim.log.levels.WARN)
