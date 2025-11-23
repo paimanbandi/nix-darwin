@@ -154,6 +154,9 @@
             # Package managers
             luarocks
 
+            # Web Browser
+            chromium
+
             # Web scraping
             httrack
 
