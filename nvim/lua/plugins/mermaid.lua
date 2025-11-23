@@ -44,6 +44,14 @@ return {
       { "<leader>mp", "<cmd>MarkdownPreview<cr>",       desc = "Mermaid/Markdown Preview" },
       { "<leader>ms", "<cmd>MarkdownPreviewStop<cr>",   desc = "Stop Mermaid Preview" },
       { "<leader>mt", "<cmd>MarkdownPreviewToggle<cr>", desc = "Toggle Mermaid Preview" },
+      {
+        "<leader>me",
+        function()
+          local file = vim.fn.expand('%:p')
+          vim.cmd('!npx -p @mermaid-js/mermaid-cli mmdc -i ' .. file .. ' -o output.png')
+        end,
+        desc = "Export Mermaid to PNG"
+      },
     },
     build = function()
       vim.fn["mkdp#util#install"]()
