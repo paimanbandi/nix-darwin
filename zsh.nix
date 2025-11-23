@@ -52,6 +52,7 @@
       export NVIM_NO_TITLE=1
       export FLUTTER_HOME="/Users/paiman/Programs/flutter"
       export CARGO_HOME="/Users/paiman/.cargo"
+      export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       export PATH="/run/current-system/sw/bin:$FLUTTER_HOME/bin:$CARGO_HOME/bin:$PATH"
 
       eval "$(starship init zsh)"
