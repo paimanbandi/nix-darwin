@@ -25,9 +25,12 @@ opt.scrolloff = 8
 opt.sidescrolloff = 8
 opt.smoothscroll = true
 
-opt.cmdheight = 2
 opt.laststatus = 3
 opt.showmode = false
+
+opt.cmdheight = 1
+opt.winminheight = 1
+opt.winheight = 1
 
 opt.conceallevel = 0
 opt.concealcursor = ""

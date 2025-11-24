@@ -8,10 +8,6 @@ return {
         server = {
           on_attach = function(_, bufnr)
             vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-            local opts = { buffer = bufnr, silent = true }
-            vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-            vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-            vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
           end,
           default_settings = {
             ["rust-analyzer"] = {

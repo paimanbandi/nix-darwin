@@ -2,9 +2,9 @@ return {
   "stevearc/aerial.nvim",
   opts = {
     backends = { "lsp", "treesitter", "markdown", "man" },
-    attach_mode = "global",
+    attach_mode = "window",        -- Ubah dari "global" ke "window"
     layout = {
-      default_direction = "right",
+      default_direction = "float", -- Ubah dari "right" ke "float"
       max_width = { 40, 0.2 },
     },
     show_guides = true,
