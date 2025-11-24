@@ -72,6 +72,7 @@
             # Search tools
             ripgrep
             ripgrep-all
+            fzf
 
             # gRPC tools
             grpcurl
