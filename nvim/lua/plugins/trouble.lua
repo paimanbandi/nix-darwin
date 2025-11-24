@@ -35,5 +35,12 @@ return {
       "<cmd>Trouble qflist toggle win.position=right<cr>",
       desc = "Quickfix List (Trouble)",
     },
+    {
+      "<leader>dl",
+      function()
+        vim.diagnostic.setloclist()
+      end,
+      desc = "Show diagnostics in loclist"
+    },
   },
 }

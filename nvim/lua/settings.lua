@@ -21,19 +21,16 @@ opt.updatetime = 300
 opt.timeoutlen = 300
 opt.signcolumn = "yes"
 
--- Smooth scrolling behavior
-vim.opt.scrolloff = 8       -- Keep cursor centered
-vim.opt.sidescrolloff = 8
-vim.opt.smoothscroll = true -- Native smooth scroll (Neovim 0.10+)
+opt.scrolloff = 8
+opt.sidescrolloff = 8
+opt.smoothscroll = true
 
--- Reduce visual clutter untuk smooth appearance
-vim.opt.cmdheight = 1
-vim.opt.laststatus = 3   -- Global statusline (cleaner)
-vim.opt.showmode = false -- Hide mode (noice handles this)
+opt.cmdheight = 2
+opt.laststatus = 3
+opt.showmode = false
 
--- Better rendering
-vim.opt.conceallevel = 0
-vim.opt.concealcursor = ""
+opt.conceallevel = 0
+opt.concealcursor = ""
 
 opt.fillchars = {
   vert = "│",
