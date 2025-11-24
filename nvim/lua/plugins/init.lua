@@ -26,7 +26,6 @@ return require("lazy").setup({
   require("plugins.d2"),
   require("plugins.yazi"),
   require("plugins.markdown"),
-  require("plugins.ultra-effects"),
   require("plugins.smear-cursor"),
   require("plugins.rust"),
   require("plugins.aerial"),
