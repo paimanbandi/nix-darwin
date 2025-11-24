@@ -19,29 +19,6 @@ return {
       ]])
     end,
   },
-
-  -- 4. Colorful winsep - Smooth window borders
-  {
-    "nvim-zh/colorful-winsep.nvim",
-    event = "WinNew",
-    config = function()
-      require("colorful-winsep").setup({
-        highlight = {
-          bg = "#16161E",
-          fg = "#ff4500",
-        },
-        -- Smooth animation
-        interval = 20, -- Lower = smoother
-        no_exec_files = {
-          "packer", "TelescopePrompt", "mason", "NvimTree",
-        },
-        symbols = { "─", "│", "╭", "╮", "╰", "╯" }, -- Rounded corners!
-        smooth = true,
-      })
-    end,
-  },
-
-  -- 5. Nvim-notify - Smooth notifications
   {
     "rcarriga/nvim-notify",
     config = function()

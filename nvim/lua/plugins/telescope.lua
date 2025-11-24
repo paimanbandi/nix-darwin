@@ -4,7 +4,23 @@ return {
   lazy = false,
   dependencies = { 'nvim-lua/plenary.nvim' },
   config = function()
-    require('telescope').setup({})
+    require('telescope').setup({
+      defaults = {
+        -- Disable semua fancy layout
+        sorting_strategy = "ascending",
+        layout_strategy = "center",
+        layout_config = {
+          anchor = "N",
+          height = 0.5,
+          width = 0.7,
+        },
+        borderchars = {
+          prompt = { "─", " ", " ", " ", "─", "─", " ", " " },
+          results = { " " },
+          preview = { " " },
+        },
+      },
+    })
   end,
   keys = {
     {

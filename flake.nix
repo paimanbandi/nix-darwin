@@ -132,6 +132,7 @@
             docker
             docker-compose
             colima
+            dive
             # podman
             # podman-compose
 
