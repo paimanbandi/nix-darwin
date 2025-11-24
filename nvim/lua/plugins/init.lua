@@ -12,7 +12,7 @@ return require("lazy").setup({
   require("plugins.colorizer"),
   require("plugins.lualine"),
   require("plugins.modes"),
-  require("plugins.telescope"),
+  require("plugins.fzf"),
   require("plugins.leap"),
   require("plugins.git"),
   require("plugins.trouble"),
