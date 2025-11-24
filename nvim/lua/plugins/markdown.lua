@@ -135,6 +135,95 @@ return {
         desc = "Export All Mermaid to PNG (High Quality)"
       },
       {
+        "<leader>mv",
+        function()
+          -- Export current mermaid block to SVG
+          local start_line = vim.fn.search("```mermaid", "bnW")
+          local end_line = vim.fn.search("```", "nW")
+
+          if start_line > 0 and end_line > 0 then
+            local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line - 1, false)
+            local temp_file = "/tmp/mermaid_temp.mmd"
+            local output_file = vim.fn.expand("%:p:h") .. "/diagram_" .. os.time() .. ".svg"
+
+            vim.fn.writefile(lines, temp_file)
+
+            -- Auto-detect Chrome
+            local chrome_paths = {
+              "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+              "/Applications/Arc.app/Contents/MacOS/Arc",
+              "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+              vim.fn.expand(
+                "~/.cache/puppeteer/chrome/mac_arm-*/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"),
+            }
+
+            local chrome_path = nil
+            for _, path in ipairs(chrome_paths) do
+              local expanded = vim.fn.glob(path)
+              if expanded ~= "" and vim.fn.filereadable(expanded) == 1 then
+                chrome_path = expanded
+                break
+              end
+            end
+
+            if not chrome_path then
+              vim.notify("Chrome not found! Please install Chrome, Arc, or Brave browser", vim.log.levels.ERROR)
+              vim.notify("Or run: npx puppeteer browsers install chrome", vim.log.levels.INFO)
+              return
+            end
+
+            local cmd = string.format(
+              "PUPPETEER_EXECUTABLE_PATH='%s' mmdc -i %s -o %s -t dark -b transparent 2>&1",
+              chrome_path,
+              vim.fn.shellescape(temp_file),
+              vim.fn.shellescape(output_file)
+            )
+
+            vim.notify("Exporting to SVG with Chrome at: " .. chrome_path, vim.log.levels.INFO)
+            local output = vim.fn.system(cmd)
+
+            if vim.v.shell_error == 0 then
+              vim.notify("Exported to: " .. output_file, vim.log.levels.INFO)
+              vim.fn.system("open " .. vim.fn.shellescape(output_file))
+            else
+              vim.notify("Export failed! Error: " .. output, vim.log.levels.ERROR)
+            end
+          else
+            vim.notify("No mermaid block found at cursor", vim.log.levels.WARN)
+          end
+        end,
+        desc = "Export Mermaid Block to SVG"
+      },
+      {
+        "<leader>mV",
+        function()
+          -- Export all mermaid blocks to SVG
+          local file = vim.fn.expand('%:p')
+          local output_dir = vim.fn.expand("%:p:h") .. "/diagrams"
+
+          vim.fn.mkdir(output_dir, "p")
+
+          local output_file = output_dir .. "/" .. vim.fn.expand("%:t:r") .. "_" .. os.time() .. ".svg"
+
+          local cmd = string.format(
+            "mmdc -i %s -o %s -t dark -b transparent",
+            file,
+            output_file
+          )
+
+          vim.notify("Exporting full document to SVG...", vim.log.levels.INFO)
+          vim.fn.system(cmd)
+
+          if vim.v.shell_error == 0 then
+            vim.notify("Exported to: " .. output_file, vim.log.levels.INFO)
+            vim.fn.system("open " .. output_file)
+          else
+            vim.notify("Export failed!", vim.log.levels.ERROR)
+          end
+        end,
+        desc = "Export All Mermaid to SVG"
+      },
+      {
         "<leader>ml",
         function()
           -- Open in Mermaid Live Editor
