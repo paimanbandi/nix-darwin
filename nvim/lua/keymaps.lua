@@ -10,6 +10,4 @@ k.set('n', '<leader><leader>', ':b#<CR>', { silent = true })
 
 k.set("n", "<leader>dl", vim.diagnostic.setloclist, { desc = "Show diagnostics in loclist" })
 
-k.set("n", "<leader>mm", ":!markmap % -o<CR>", { silent = true })
-
 k.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Clear search highlights' })
