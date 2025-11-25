@@ -53,7 +53,7 @@ return {
           if start_line > 0 and end_line > 0 then
             local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line - 1, false)
             local temp_file = "/tmp/mermaid_temp.mmd"
-            local base_name = vim.fn.expand("%:t:r") -- Get filename without extension
+            local base_name = vim.fn.expand("%:t:r")
             local output_file = vim.fn.expand("%:p:h") .. "/" .. base_name .. ".png"
 
             vim.fn.writefile(lines, temp_file)
@@ -69,7 +69,6 @@ return {
 
             local chrome_path = nil
             for _, path in ipairs(chrome_paths) do
-              -- Expand glob patterns
               local expanded = vim.fn.glob(path)
               if expanded ~= "" and vim.fn.filereadable(expanded) == 1 then
                 chrome_path = expanded
@@ -83,8 +82,9 @@ return {
               return
             end
 
+            -- PERUBAHAN: Tingkatkan scale dari 3 ke 5 dan tambah width/height
             local cmd = string.format(
-              "PUPPETEER_EXECUTABLE_PATH='%s' mmdc -i %s -o %s -t dark -b white --scale 3 2>&1",
+              "PUPPETEER_EXECUTABLE_PATH='%s' mmdc -i %s -o %s -t dark -b white --scale 5 --width 4000 --height 4000 2>&1",
               chrome_path,
               vim.fn.shellescape(temp_file),
               vim.fn.shellescape(output_file)
@@ -108,18 +108,17 @@ return {
       {
         "<leader>mE",
         function()
-          -- Export whole file (semua mermaid blocks)
           local file = vim.fn.expand('%:p')
           local output_dir = vim.fn.expand("%:p:h") .. "/diagrams"
 
-          -- Create diagrams directory
           vim.fn.mkdir(output_dir, "p")
 
-          local base_name = vim.fn.expand("%:t:r") -- Get filename without extension
+          local base_name = vim.fn.expand("%:t:r")
           local output_file = output_dir .. "/" .. base_name .. ".png"
 
+          -- PERUBAHAN: Tingkatkan scale dari 4 ke 6 dan width/height
           local cmd = string.format(
-            "mmdc -i %s -o %s -t dark -b white --scale 4 --width 3000 --height 3000",
+            "mmdc -i %s -o %s -t dark -b white --scale 6 --width 5000 --height 5000",
             file,
             output_file
           )
@@ -139,19 +138,17 @@ return {
       {
         "<leader>mv",
         function()
-          -- Export current mermaid block to SVG
           local start_line = vim.fn.search("```mermaid", "bnW")
           local end_line = vim.fn.search("```", "nW")
 
           if start_line > 0 and end_line > 0 then
             local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line - 1, false)
             local temp_file = "/tmp/mermaid_temp.mmd"
-            local base_name = vim.fn.expand("%:t:r") -- Get filename without extension
+            local base_name = vim.fn.expand("%:t:r")
             local output_file = vim.fn.expand("%:p:h") .. "/" .. base_name .. ".svg"
 
             vim.fn.writefile(lines, temp_file)
 
-            -- Auto-detect Chrome (same as PNG export)
             local chrome_paths = {
               "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
               "/Applications/Arc.app/Contents/MacOS/Arc",
@@ -200,16 +197,14 @@ return {
       {
         "<leader>mV",
         function()
-          -- Export all mermaid blocks to SVG
           local file = vim.fn.expand('%:p')
           local output_dir = vim.fn.expand("%:p:h") .. "/diagrams"
 
           vim.fn.mkdir(output_dir, "p")
 
-          local base_name = vim.fn.expand("%:t:r") -- Get filename without extension
+          local base_name = vim.fn.expand("%:t:r")
           local output_file = output_dir .. "/" .. base_name .. ".svg"
 
-          -- Auto-detect Chrome (same as PNG export)
           local chrome_paths = {
             "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
             "/Applications/Arc.app/Contents/MacOS/Arc",
@@ -255,7 +250,6 @@ return {
       {
         "<leader>ml",
         function()
-          -- Open in Mermaid Live Editor
           local start_line = vim.fn.search("```mermaid", "bnW")
           local end_line = vim.fn.search("```", "nW")
 
@@ -263,7 +257,6 @@ return {
             local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line - 1, false)
             local content = table.concat(lines, "\n")
 
-            -- Base64 encode
             local encoded = vim.fn.system('echo "' .. content:gsub('"', '\\"') .. '" | base64')
             encoded = encoded:gsub("\n", "")
 
