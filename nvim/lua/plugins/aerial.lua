@@ -10,9 +10,19 @@ return {
     show_guides = true,
   },
   keys = {
-    { "<leader>a", "<cmd>AerialToggle!<CR>", desc = "Toggle Outline (Aerial)" },
-    { "{",         "<cmd>AerialPrev<CR>",    desc = "Previous Symbol" },
-    { "}",         "<cmd>AerialNext<CR>",    desc = "Next Symbol" },
+    {
+      "<leader>a",
+      function()
+        require("aerial").toggle()
+        -- Tunggu sedikit lalu pindah jendela biar fokus ke Aerial
+        vim.defer_fn(function()
+          vim.cmd("wincmd w") -- sama seperti Ctrl+w w
+        end, 10)
+      end,
+      desc = "Toggle Outline (Aerial) + Focus",
+    },
+    { "{", "<cmd>AerialPrev<CR>", desc = "Previous Symbol" },
+    { "}", "<cmd>AerialNext<CR>", desc = "Next Symbol" },
   },
   dependencies = {
     "nvim-treesitter/nvim-treesitter",
