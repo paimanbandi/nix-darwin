@@ -35,7 +35,6 @@ return require("lazy").setup({
   require("plugins.spectre"),
   require("plugins.todo"),
   require("plugins.dropbar"),
-  require("plugins.mouse"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
