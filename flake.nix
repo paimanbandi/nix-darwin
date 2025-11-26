@@ -161,6 +161,8 @@
 
             # File Manager
             yazi
+
+            maven
           ];
 
           nix.settings.experimental-features = [

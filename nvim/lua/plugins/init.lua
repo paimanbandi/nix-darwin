@@ -35,6 +35,7 @@ return require("lazy").setup({
   require("plugins.spectre"),
   require("plugins.todo"),
   require("plugins.dropbar"),
+  require("plugins.multi-cursor"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
