@@ -30,6 +30,8 @@ return {
         sign = false,
         width = 'block',
         right_pad = 1,
+        disable_background = { "mermaid" },
+        highlight = "",
       },
       heading = {
         sign = false,
@@ -37,6 +39,38 @@ return {
       },
     },
     ft = { "markdown", "mermaid" },
+    config = function(_, opts)
+      require("render-markdown").setup(opts)
+
+      vim.api.nvim_set_hl(0, "RenderMarkdownCode", {
+        fg = "#7aa2f7",
+        bg = "NONE"
+      })
+
+      vim.api.nvim_set_hl(0, "RenderMarkdownCodeInline", {
+        fg = "#7aa2f7",
+        bg = "NONE"
+      })
+
+      vim.api.nvim_set_hl(0, "ColorColumn", {
+        bg = "#1a1b26"
+      })
+
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        callback = function()
+          vim.schedule(function()
+            vim.api.nvim_set_hl(0, "RenderMarkdownCode", {
+              fg = "#7aa2f7",
+              bg = "NONE"
+            })
+            vim.api.nvim_set_hl(0, "RenderMarkdownCodeInline", {
+              fg = "#7aa2f7",
+              bg = "NONE"
+            })
+          end)
+        end,
+      })
+    end,
   },
   {
     "iamcco/markdown-preview.nvim",
@@ -58,7 +92,6 @@ return {
 
             vim.fn.writefile(lines, temp_file)
 
-            -- Auto-detect Chrome
             local chrome_paths = {
               "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
               "/Applications/Arc.app/Contents/MacOS/Arc",
@@ -82,7 +115,6 @@ return {
               return
             end
 
-            -- PERUBAHAN: Tingkatkan scale dari 3 ke 5 dan tambah width/height
             local cmd = string.format(
               "PUPPETEER_EXECUTABLE_PATH='%s' mmdc -i %s -o %s -t dark -b white --scale 5 --width 4000 --height 4000 2>&1",
               chrome_path,
@@ -116,7 +148,6 @@ return {
           local base_name = vim.fn.expand("%:t:r")
           local output_file = output_dir .. "/" .. base_name .. ".png"
 
-          -- PERUBAHAN: Tingkatkan scale dari 4 ke 6 dan width/height
           local cmd = string.format(
             "mmdc -i %s -o %s -t dark -b white --scale 6 --width 5000 --height 5000",
             file,
