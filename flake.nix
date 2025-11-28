@@ -163,6 +163,15 @@
             yazi
 
             maven
+            (tmux.overrideAttrs (oldAttrs: rec {
+              version = "3.6";
+              src = pkgs.fetchFromGitHub {
+                owner = "tmux";
+                repo = "tmux";
+                rev = version;
+                hash = "sha256-jIHnwidzqt+uDDFz8UVHihTgHJybbVg3pQvzlMzOXPE=";
+              };
+            }))
           ];
 
           nix.settings.experimental-features = [
