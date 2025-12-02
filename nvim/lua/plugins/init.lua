@@ -28,7 +28,7 @@ return require("lazy").setup({
   require("plugins.markdown-render"),
   require("plugins.markdown-export"),
   require("plugins.markdown-ai"),
-  require("plugins.markdown-ai-opencode"),
+  require("plugins.markdown-ai-ollama"),
   require("plugins.smear-cursor"),
   require("plugins.rust"),
   require("plugins.aerial"),
