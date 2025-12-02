@@ -331,44 +331,102 @@ M.call_provider = function(prompt, callbacks)
   try_provider(primary, available)
 end
 
--- Interactive provider selection
+-- Interactive provider selection with callback
+M.select_provider_async = function(callback)
+  local available = M.get_available_providers()
+
+  if #available == 0 then
+    vim.notify("No AI providers available", vim.log.levels.ERROR)
+    if callback then callback(nil) end
+    return
+  end
+
+  -- Clear and show menu
+  vim.cmd("redraw")
+  print("\n=== Select AI Provider ===\n")
+
+  for i, name in ipairs(available) do
+    local provider = M.providers[name]
+    local type_label = ""
+    if provider.type == "local" then
+      type_label = " (Local, Free)"
+    elseif provider.type == "api" then
+      type_label = " (API, Paid)"
+    elseif provider.type == "cli" then
+      type_label = " (Cloud)"
+    end
+
+    print(string.format("[%d] %s%s", i, provider.name, type_label))
+  end
+
+  print("[0] Cancel\n")
+
+  -- Get input with proper async handling
+  vim.ui.input(
+    { prompt = string.format("Enter number (1-%d): ", #available) },
+    function(input)
+      vim.cmd("redraw")
+
+      if not input then
+        vim.notify("Selection cancelled", vim.log.levels.INFO)
+        if callback then callback(nil) end
+        return
+      end
+
+      local choice = tonumber(input)
+
+      if not choice or choice == 0 then
+        vim.notify("Selection cancelled", vim.log.levels.INFO)
+        if callback then callback(nil) end
+        return
+      end
+
+      if choice < 1 or choice > #available then
+        vim.notify("Invalid selection: " .. choice, vim.log.levels.ERROR)
+        if callback then callback(nil) end
+        return
+      end
+
+      local selected = available[choice]
+      vim.notify("Selected: " .. M.providers[selected].name, vim.log.levels.INFO)
+
+      if callback then callback(selected) end
+    end
+  )
+end
+
+-- Keep synchronous version for backward compatibility
 M.select_provider = function()
   local available = M.get_available_providers()
 
   if #available == 0 then
     vim.notify("No AI providers available", vim.log.levels.ERROR)
-    vim.notify("Setup Instructions:", vim.log.levels.INFO)
-    vim.notify("Claude: npm install -g @anthropic-ai/claude-code", vim.log.levels.INFO)
-    vim.notify("OpenCode: pip install opencode-ai (runs locally, free)", vim.log.levels.INFO)
-    vim.notify("Ollama: curl -fsSL https://ollama.com/install.sh | sh", vim.log.levels.INFO)
     return nil
   end
 
-  -- Build menu items with unique shortcuts
-  local shortcuts = { "C", "O", "L", "A", "E", "F", "G", "H" } -- Unique letters
-  local menu_lines = {}
+  vim.cmd("redraw")
+  print("\n=== Select AI Provider ===\n")
 
   for i, name in ipairs(available) do
     local provider = M.providers[name]
-    local desc = provider.name
+    local type_label = ""
     if provider.type == "local" then
-      desc = desc .. " (Local, Free)"
+      type_label = " (Local, Free)"
     elseif provider.type == "api" then
-      desc = desc .. " (API, Paid)"
+      type_label = " (API, Paid)"
     end
 
-    -- Use unique shortcut letter
-    local shortcut = shortcuts[i] or tostring(i)
-    table.insert(menu_lines, "&" .. shortcut .. ". " .. desc)
+    print(string.format("[%d] %s%s", i, provider.name, type_label))
   end
 
-  table.insert(menu_lines, "&Cancel")
+  print("[0] Cancel\n")
 
-  local options = table.concat(menu_lines, "\n")
-  local choice = vim.fn.confirm("Select AI Provider:", options, 1)
+  local input = vim.fn.input(string.format("Enter number (1-%d): ", #available))
+  vim.cmd("redraw")
 
-  -- Handle cancel or invalid
-  if choice == 0 or choice > #available then
+  local choice = tonumber(input)
+
+  if not choice or choice == 0 or choice < 1 or choice > #available then
     return nil
   end
 

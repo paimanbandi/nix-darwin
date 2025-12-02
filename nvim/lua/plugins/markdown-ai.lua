@@ -239,26 +239,31 @@ M.generate_from_selection = function()
   M.call_ai(prompt, output_file, title)
 end
 
--- Generate with provider selection
+-- Generate with provider selection (UPDATED)
 M.generate_with_provider = function()
-  local selected_provider = providers.select_provider()
+  providers.select_provider_async(function(selected_provider)
+    if not selected_provider then
+      return
+    end
 
-  if not selected_provider then
-    vim.notify("No provider selected", vim.log.levels.WARN)
-    return
-  end
+    -- Temporarily set as preferred provider
+    local original_provider = providers.get_preferred_provider()
+    providers.set_preferred_provider(selected_provider)
 
-  -- Temporarily set as preferred provider
-  local original_provider = providers.get_preferred_provider()
-  providers.set_preferred_provider(selected_provider)
+    -- Small delay for UI cleanup
+    vim.defer_fn(function()
+      vim.notify("Generating diagram with " .. providers.providers[selected_provider].name .. "...",
+        vim.log.levels.INFO)
 
-  -- Generate with auto-detection
-  M.generate_auto("moderate")
+      -- Generate with auto-detection
+      M.generate_auto("moderate")
 
-  -- Restore original preference
-  vim.defer_fn(function()
-    providers.set_preferred_provider(original_provider)
-  end, 1000)
+      -- Restore original preference
+      vim.defer_fn(function()
+        providers.set_preferred_provider(original_provider)
+      end, 1000)
+    end, 100)
+  end)
 end
 
 -- Set default provider permanently
