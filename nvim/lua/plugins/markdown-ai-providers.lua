@@ -74,27 +74,38 @@ M.get_preferred_provider = function()
   return preference
 end
 
--- Set provider preference
+-- Set provider preference (DEBUG VERSION)
 M.set_preferred_provider = function(provider_name)
+  print("=== SET_PREFERRED: Called with: " .. provider_name .. " ===")
+
   if not M.providers[provider_name] then
+    print("=== SET_PREFERRED: Provider not found: " .. provider_name .. " ===")
     vim.notify("Unknown provider: " .. provider_name, vim.log.levels.ERROR)
     return false
   end
 
+  print("=== SET_PREFERRED: Setting vim.g.mermaid_ai_provider to: " .. provider_name .. " ===")
   vim.g.mermaid_ai_provider = provider_name
+
+  print("=== SET_PREFERRED: Verifying - vim.g.mermaid_ai_provider is now: " ..
+    tostring(vim.g.mermaid_ai_provider) .. " ===")
+
   vim.notify("Default provider set to: " .. M.providers[provider_name].name, vim.log.levels.INFO)
   return true
 end
 
--- Get available providers in priority order
+-- Get available providers in priority order (DEBUG VERSION)
 M.get_available_providers = function()
   local available = {}
 
   -- Check preferred provider first
   local preferred = M.get_preferred_provider()
+  print("=== GET_AVAILABLE: Preferred provider: " .. preferred .. " ===")
+
   local is_available, _ = M.is_provider_available(preferred)
   if is_available then
     table.insert(available, preferred)
+    print("=== GET_AVAILABLE: Added preferred: " .. preferred .. " ===")
   end
 
   -- Check other providers by priority
@@ -111,8 +122,11 @@ M.get_available_providers = function()
     is_available, _ = M.is_provider_available(item.name)
     if is_available then
       table.insert(available, item.name)
+      print("=== GET_AVAILABLE: Added provider: " .. item.name .. " ===")
     end
   end
+
+  print("=== GET_AVAILABLE: Final list: " .. vim.inspect(available) .. " ===")
 
   return available
 end

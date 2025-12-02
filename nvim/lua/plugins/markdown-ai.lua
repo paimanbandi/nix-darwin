@@ -239,31 +239,56 @@ M.generate_from_selection = function()
   M.call_ai(prompt, output_file, title)
 end
 
--- Generate with provider selection (UPDATED)
+-- Generate with provider selection - ULTRA SIMPLE
 M.generate_with_provider = function()
-  providers.select_provider_async(function(selected_provider)
-    if not selected_provider then
-      return
-    end
+  local available = providers.get_available_providers()
 
-    -- Temporarily set as preferred provider
-    local original_provider = providers.get_preferred_provider()
-    providers.set_preferred_provider(selected_provider)
+  if #available == 0 then
+    vim.notify("No AI providers available", vim.log.levels.ERROR)
+    return
+  end
 
-    -- Small delay for UI cleanup
-    vim.defer_fn(function()
-      vim.notify("Generating diagram with " .. providers.providers[selected_provider].name .. "...",
-        vim.log.levels.INFO)
+  -- Show menu
+  print("\n=== Select AI Provider ===")
+  for i, name in ipairs(available) do
+    local p = providers.providers[name]
+    print(string.format("[%d] %s", i, p.name))
+  end
+  print("[0] Cancel\n")
 
-      -- Generate with auto-detection
-      M.generate_auto("moderate")
+  -- Get choice
+  local input = vim.fn.input("Enter number: ")
+  local choice = tonumber(input)
 
-      -- Restore original preference
-      vim.defer_fn(function()
-        providers.set_preferred_provider(original_provider)
-      end, 1000)
-    end, 100)
-  end)
+  vim.cmd("redraw")
+
+  if not choice or choice < 1 or choice > #available then
+    return
+  end
+
+  -- THIS IS THE KEY PART - print what we got
+  local selected = available[choice]
+  print("=== SELECTED INDEX: " .. choice .. " ===")
+  print("=== SELECTED NAME: " .. selected .. " ===")
+
+  -- Set it
+  providers.set_preferred_provider(selected)
+
+  -- Verify it was set
+  local current = providers.get_preferred_provider()
+  print("=== CURRENT PROVIDER AFTER SET: " .. current .. " ===")
+
+  if current ~= selected then
+    vim.notify("ERROR: Provider not set correctly!", vim.log.levels.ERROR)
+    return
+  end
+
+  -- Now generate
+  vim.notify("Generating with " .. providers.providers[selected].name, vim.log.levels.INFO)
+
+  vim.defer_fn(function()
+    M.generate_auto("moderate")
+  end, 300)
 end
 
 -- Set default provider permanently
