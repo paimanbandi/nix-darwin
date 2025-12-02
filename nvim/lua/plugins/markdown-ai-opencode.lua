@@ -1,16 +1,15 @@
--- plugins/markdown-ai-opencode.lua
 return {
   lazy = true,
   keys = {
-    { "<leader>ma", "<cmd>lua require('markdown-ai-opencode').generate_auto()<cr>",      desc = "Mermaid AI: Auto generate" },
-    { "<leader>mm", "<cmd>lua require('markdown-ai-opencode').generate_menu()<cr>",      desc = "Mermaid AI: Choose type" },
-    { "<leader>mf", "<cmd>lua require('markdown-ai-opencode').generate_flowchart()<cr>", desc = "Mermaid AI: Flowchart" },
-    { "<leader>ms", "<cmd>lua require('markdown-ai-opencode').generate_sequence()<cr>",  desc = "Mermaid AI: Sequence" },
-    { "<leader>mc", "<cmd>lua require('markdown-ai-opencode').generate_class()<cr>",     desc = "Mermaid AI: Class" },
-    { "<leader>mt", "<cmd>lua require('markdown-ai-opencode').generate_state()<cr>",     desc = "Mermaid AI: State" },
-    { "<leader>me", "<cmd>lua require('markdown-ai-opencode').generate_er()<cr>",        desc = "Mermaid AI: ER Diagram" },
-    { "<leader>mg", "<cmd>lua require('markdown-ai-opencode').generate_gantt()<cr>",     desc = "Mermaid AI: Gantt" },
-    { "<leader>mp", "<cmd>lua require('markdown-ai-opencode').preview()<cr>",            desc = "Mermaid AI: Preview" },
+    { "<leader>ma", function() require("markdown-ai-opencode").generate_auto() end,      desc = "Mermaid AI: Auto" },
+    { "<leader>mm", function() require("markdown-ai-opencode").generate_menu() end,      desc = "Mermaid AI: Menu" },
+    { "<leader>mf", function() require("markdown-ai-opencode").generate_flowchart() end, desc = "Mermaid AI: Flowchart" },
+    { "<leader>ms", function() require("markdown-ai-opencode").generate_sequence() end,  desc = "Mermaid AI: Sequence" },
+    { "<leader>mc", function() require("markdown-ai-opencode").generate_class() end,     desc = "Mermaid AI: Class" },
+    { "<leader>mt", function() require("markdown-ai-opencode").generate_state() end,     desc = "Mermaid AI: State" },
+    { "<leader>me", function() require("markdown-ai-opencode").generate_er() end,        desc = "Mermaid AI: ER" },
+    { "<leader>mg", function() require("markdown-ai-opencode").generate_gantt() end,     desc = "Mermaid AI: Gantt" },
+    { "<leader>mp", function() require("markdown-ai-opencode").preview() end,            desc = "Mermaid AI: Preview" },
   },
   config = function()
     local M = {}
