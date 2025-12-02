@@ -315,43 +315,35 @@ M.show_help = function()
   vim.notify(help_text, vim.log.levels.INFO)
 end
 
+M.keymaps = {
+  {
+    "<leader>ma",
+    function() M.generate_auto("moderate") end,
+    desc = "📊 Generate Diagram (Auto-detect)"
+  },
+  {
+    "<leader>mA",
+    function() M.generate_auto("simple") end,
+    desc = "📊 Generate Simple Diagram (Auto)"
+  },
+  {
+    "<leader>md",
+    function() M.generate_manual() end,
+    desc = "📝 Generate Diagram (Choose type)"
+  },
+  {
+    "<leader>mp",
+    function() M.preview() end,
+    desc = "👁️ Preview Diagram"
+  },
+  {
+    "<leader>mh",
+    function() M.show_help() end,
+    desc = "❓ Show Help"
+  },
+}
+
 return {
   "iamcco/markdown-preview.nvim",
-  keys = {
-    {
-      "<leader>ma",
-      function()
-        M.generate_auto("moderate")
-      end,
-      desc = "📊 Generate Diagram (Auto-detect)"
-    },
-    {
-      "<leader>mA",
-      function()
-        M.generate_auto("simple")
-      end,
-      desc = "📊 Generate Simple Diagram (Auto)"
-    },
-    {
-      "<leader>md",
-      function()
-        M.generate_manual()
-      end,
-      desc = "📝 Generate Diagram (Choose type)"
-    },
-    {
-      "<leader>mp",
-      function()
-        M.preview()
-      end,
-      desc = "👁️  Preview Diagram"
-    },
-    {
-      "<leader>mh",
-      function()
-        M.show_help()
-      end,
-      desc = "❓ Show Help"
-    },
-  },
+  keys = M.keymaps,
 }
