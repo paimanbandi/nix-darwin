@@ -30,8 +30,14 @@ M.call_ai = function(prompt, output_file, title)
 
   providers.call_provider(prompt, {
     on_success = function(response, provider_name)
-      -- Validate response contains mermaid blocks
-      if not response:match("```mermaid") then
+      -- Clean up response - extract mermaid block if surrounded by text
+      local mermaid_block = response:match("```mermaid(.-)```")
+
+      if mermaid_block then
+        -- Rebuild proper mermaid block
+        response = "```mermaid" .. mermaid_block .. "```"
+      elseif not response:match("```mermaid") then
+        -- No mermaid block found at all
         vim.notify("Invalid response: No mermaid blocks found", vim.log.levels.ERROR)
 
         -- Save debug output
@@ -44,6 +50,7 @@ M.call_ai = function(prompt, output_file, title)
           file:write(response)
           file:close()
           vim.notify("Debug output saved to: " .. debug_file, vim.log.levels.INFO)
+          vim.notify("Try regenerating with <leader>mr or use different provider", vim.log.levels.INFO)
         end
         return
       end

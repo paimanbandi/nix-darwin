@@ -120,6 +120,10 @@ end
 -- Build command for different provider types
 M.build_command = function(provider_name, prompt)
   local provider = M.providers[provider_name]
+  local prompts_module = require("plugins.markdown-ai-prompts")
+
+  -- Prepend system message to prompt
+  local full_prompt = prompts_module.get_system_message() .. "\n\n" .. prompt
 
   -- Create temp prompt file
   local temp_prompt = vim.fn.tempname() .. "_prompt.txt"
@@ -129,7 +133,7 @@ M.build_command = function(provider_name, prompt)
     return nil, nil, "Failed to create temp file"
   end
 
-  prompt_file:write(prompt)
+  prompt_file:write(full_prompt)
   prompt_file:close()
 
   local cmd
@@ -143,8 +147,7 @@ M.build_command = function(provider_name, prompt)
       cmd = string.format("opencode generate --prompt-file %s", vim.fn.shellescape(temp_prompt))
     elseif provider_name == "ollama" then
       -- Ollama local LLM
-      -- Escape prompt for command line
-      local escaped = prompt:gsub("'", "'\\''")
+      local escaped = full_prompt:gsub("'", "'\\''")
       cmd = string.format("ollama run %s '%s'", provider.model, escaped)
     end
   elseif provider.type == "api" then
@@ -155,21 +158,21 @@ M.build_command = function(provider_name, prompt)
     end
 
     -- Escape for JSON
-    local escaped_prompt = prompt:gsub('\\', '\\\\'):gsub('"', '\\"'):gsub('\n', '\\n')
+    local escaped_prompt = full_prompt:gsub('\\', '\\\\'):gsub('"', '\\"'):gsub('\n', '\\n')
 
     local json_payload = string.format([[{
   "model": "%s",
   "messages": [
     {
       "role": "system",
-      "content": "You are an expert at creating Mermaid diagrams. Always return valid Mermaid syntax wrapped in ```mermaid``` code blocks."
+      "content": "You are a Mermaid diagram code generator. Output ONLY valid Mermaid syntax in code blocks. NO explanations."
     },
     {
       "role": "user",
       "content": "%s"
     }
   ],
-  "temperature": 0.7,
+  "temperature": 0.3,
   "max_tokens": 4096
 }]], provider.model, escaped_prompt)
 
