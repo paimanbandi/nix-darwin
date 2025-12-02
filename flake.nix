@@ -172,6 +172,9 @@
                 hash = "sha256-jIHnwidzqt+uDDFz8UVHihTgHJybbVg3pQvzlMzOXPE=";
               };
             }))
+
+            # AI agent
+            claude-code
           ];
 
           nix.settings.experimental-features = [
