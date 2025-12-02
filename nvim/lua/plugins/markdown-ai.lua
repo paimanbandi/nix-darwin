@@ -4,13 +4,13 @@ local M = {}
 -- Helper function untuk call Claude Code
 M.call_claude_code = function(prompt, output_file, title)
   -- Check if claude-code is installed
-  local check_cmd = "which claude-code"
+  local check_cmd = "which claude"
   local claude_path = vim.fn.system(check_cmd):gsub("\n", "")
 
   if claude_path == "" then
     vim.notify("Claude Code not found! Install it first:", vim.log.levels.ERROR)
-    vim.notify("npm install -g @anthropic-ai/claude-code", vim.log.levels.INFO)
-    vim.notify("claude-code auth login", vim.log.levels.INFO)
+    vim.notify("Add claude-code on your flake.nix!", vim.log.levels.INFO)
+    vim.notify("claude auth login", vim.log.levels.INFO)
     return
   end
 
@@ -25,7 +25,7 @@ M.call_claude_code = function(prompt, output_file, title)
   vim.notify("Generating Mermaid diagram with Claude Code...", vim.log.levels.INFO)
 
   -- Call Claude Code
-  local cmd = string.format("claude-code < %s", vim.fn.shellescape(temp_prompt))
+  local cmd = string.format("claude < %s", vim.fn.shellescape(temp_prompt))
 
   vim.fn.jobstart(cmd, {
     stdout_buffered = true,
@@ -70,7 +70,7 @@ Generated Date: %s
     end,
     on_exit = function(_, exit_code)
       if exit_code ~= 0 then
-        vim.notify("Command failed. Make sure you're logged in: claude-code auth login", vim.log.levels.ERROR)
+        vim.notify("Command failed. Make sure you're logged in: claude auth login", vim.log.levels.ERROR)
       end
     end
   })
