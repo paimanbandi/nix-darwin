@@ -37,22 +37,27 @@ M.call_ai = function(prompt, output_file, title)
         -- Rebuild proper mermaid block
         response = "```mermaid" .. mermaid_block .. "```"
       elseif not response:match("```mermaid") then
-        -- No mermaid block found at all
-        vim.notify("Invalid response: No mermaid blocks found", vim.log.levels.ERROR)
+        -- Try alternative patterns
+        mermaid_block = response:match("```(.-)```")
+        if mermaid_block and not mermaid_block:match("^mermaid") then
+          response = "```mermaid" .. mermaid_block .. "```"
+        else
+          vim.notify("Invalid response: No mermaid blocks found", vim.log.levels.ERROR)
 
-        -- Save debug output
-        local debug_file = output_file:gsub("%.md$", "_debug.txt")
-        local file = io.open(debug_file, "w")
-        if file then
-          file:write("=== INVALID RESPONSE from " .. provider_name .. " ===\n\n")
-          file:write("Expected: ```mermaid ... ```\n")
-          file:write("Got:\n\n")
-          file:write(response)
-          file:close()
-          vim.notify("Debug output saved to: " .. debug_file, vim.log.levels.INFO)
-          vim.notify("Try regenerating with <leader>mr or use different provider", vim.log.levels.INFO)
+          -- Save debug output
+          local debug_file = output_file:gsub("%.md$", "_debug.txt")
+          local file = io.open(debug_file, "w")
+          if file then
+            file:write("=== INVALID RESPONSE from " .. provider_name .. " ===\n\n")
+            file:write("Expected: ```mermaid ... ```\n")
+            file:write("Got:\n\n")
+            file:write(response)
+            file:close()
+            vim.notify("Debug output saved to: " .. debug_file, vim.log.levels.INFO)
+            vim.notify("Try regenerating with <leader>mr or use different provider", vim.log.levels.INFO)
+          end
+          return
         end
-        return
       end
 
       -- Validate mermaid syntax
@@ -239,8 +244,11 @@ M.generate_from_selection = function()
   M.call_ai(prompt, output_file, title)
 end
 
--- Generate with provider selection - ULTRA SIMPLE
+-- Generate with provider selection - FIXED VERSION
 M.generate_with_provider = function()
+  -- Clear screen first
+  vim.cmd("redraw")
+
   local available = providers.get_available_providers()
 
   if #available == 0 then
@@ -249,55 +257,86 @@ M.generate_with_provider = function()
   end
 
   -- Show menu
-  print("\n=== Select AI Provider ===")
+  local menu_lines = { "=== Select AI Provider ===", "" }
   for i, name in ipairs(available) do
     local p = providers.providers[name]
-    print(string.format("[%d] %s", i, p.name))
+    local status = "✓"
+    table.insert(menu_lines, string.format("[%d] %s %s", i, p.name, status))
   end
-  print("[0] Cancel\n")
+  table.insert(menu_lines, "[0] Cancel")
+  table.insert(menu_lines, "")
 
-  -- Get choice
-  local input = vim.fn.input("Enter number: ")
-  local choice = tonumber(input)
+  -- Show in floating window
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, menu_lines)
 
-  vim.cmd("redraw")
+  local width = 50
+  local height = #menu_lines + 2
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = "editor",
+    width = width,
+    height = height,
+    col = (vim.o.columns - width) / 2,
+    row = (vim.o.lines - height) / 2,
+    style = "minimal",
+    border = "rounded",
+    title = " Select Provider ",
+    title_pos = "center",
+  })
 
-  if not choice or choice < 1 or choice > #available then
-    return
+  -- Set keymaps
+  local function close_win()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+    if vim.api.nvim_buf_is_valid(buf) then
+      vim.api.nvim_buf_delete(buf, { force = true })
+    end
   end
 
-  -- THIS IS THE KEY PART - print what we got
-  local selected = available[choice]
-  print("=== SELECTED INDEX: " .. choice .. " ===")
-  print("=== SELECTED NAME: " .. selected .. " ===")
+  for i = 1, #available do
+    vim.api.nvim_buf_set_keymap(buf, 'n', tostring(i), '', {
+      noremap = true,
+      callback = function()
+        close_win()
+        local selected = available[i]
+        vim.notify("Selected: " .. providers.providers[selected].name, vim.log.levels.INFO)
 
-  -- Set it
-  providers.set_preferred_provider(selected)
+        -- Set provider globally
+        providers.set_preferred_provider(selected)
 
-  -- Verify it was set
-  local current = providers.get_preferred_provider()
-  print("=== CURRENT PROVIDER AFTER SET: " .. current .. " ===")
-
-  if current ~= selected then
-    vim.notify("ERROR: Provider not set correctly!", vim.log.levels.ERROR)
-    return
+        -- Generate after a short delay
+        vim.defer_fn(function()
+          M.generate_auto("moderate")
+        end, 100)
+      end
+    })
   end
 
-  -- Now generate
-  vim.notify("Generating with " .. providers.providers[selected].name, vim.log.levels.INFO)
+  vim.api.nvim_buf_set_keymap(buf, 'n', '0', '', {
+    noremap = true,
+    callback = close_win
+  })
 
-  vim.defer_fn(function()
-    M.generate_auto("moderate")
-  end, 300)
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '', {
+    noremap = true,
+    callback = close_win
+  })
+
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', '', {
+    noremap = true,
+    callback = close_win
+  })
 end
 
 -- Set default provider permanently
 M.set_provider = function()
-  local selected = providers.select_provider()
-  if selected then
-    providers.set_preferred_provider(selected)
-    vim.notify("Default provider changed. This will be used for future generations", vim.log.levels.INFO)
-  end
+  providers.select_provider_async(function(selected)
+    if selected then
+      providers.set_preferred_provider(selected)
+      vim.notify("Default provider set to: " .. providers.providers[selected].name, vim.log.levels.INFO)
+    end
+  end)
 end
 
 -- Regenerate current diagram with new settings
@@ -446,72 +485,4 @@ M.preview = function()
   vim.cmd("MarkdownPreview")
 end
 
-return {
-  "iamcco/markdown-preview.nvim",
-  keys = {
-    {
-      "<leader>ma",
-      function()
-        M.generate_auto("moderate")
-      end,
-      desc = "Generate Diagram (Auto-detect type)"
-    },
-    {
-      "<leader>mA",
-      function()
-        M.generate_auto("simple")
-      end,
-      desc = "Generate Simple Diagram (Auto)"
-    },
-    {
-      "<leader>md",
-      function()
-        M.generate_manual()
-      end,
-      desc = "Generate Diagram (Manual type selection)"
-    },
-    {
-      "<leader>mG",
-      function()
-        M.generate_from_selection()
-      end,
-      desc = "Generate from Visual Selection",
-      mode = "v"
-    },
-    {
-      "<leader>mw",
-      function()
-        M.generate_with_provider()
-      end,
-      desc = "Generate with Provider Selection"
-    },
-    {
-      "<leader>mr",
-      function()
-        M.regenerate_current()
-      end,
-      desc = "Regenerate Current Diagram"
-    },
-    {
-      "<leader>mS",
-      function()
-        M.set_provider()
-      end,
-      desc = "Set Default AI Provider"
-    },
-    {
-      "<leader>mi",
-      function()
-        providers.show_status()
-      end,
-      desc = "Show AI Provider Status"
-    },
-    {
-      "<leader>mp",
-      function()
-        M.preview()
-      end,
-      desc = "Preview Diagram"
-    },
-  },
-}
+return M

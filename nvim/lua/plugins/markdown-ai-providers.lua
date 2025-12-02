@@ -1,13 +1,13 @@
 -- AI Provider management with automatic fallback
 local M = {}
 
--- Provider configuration
+-- Provider configuration - FIXED COMMANDS
 M.providers = {
   claude = {
     name = "Claude",
     type = "cli",
     command = "claude",
-    check_cmd = "which claude",
+    check_cmd = "which claude > /dev/null 2>&1 && echo 'found' || echo ''",
     install_cmd = "npm install -g @anthropic-ai/claude-code",
     auth_cmd = "claude auth login",
     priority = 1,
@@ -16,8 +16,10 @@ M.providers = {
     name = "OpenCode",
     type = "local",
     command = "opencode",
-    check_cmd = "which opencode",
+    check_cmd =
+    "which opencode > /dev/null 2>&1 && echo 'found' || which opencode-cli > /dev/null 2>&1 && echo 'found' || echo ''",
     install_cmd = "pip install opencode-ai",
+    model = "codellama",
     setup_info = "Fully open source, runs locally. No API key needed.",
     priority = 2,
   },
@@ -25,26 +27,26 @@ M.providers = {
     name = "Ollama",
     type = "local",
     command = "ollama",
-    check_cmd = "which ollama",
-    model = "codellama",
+    check_cmd = "which ollama > /dev/null 2>&1 && echo 'found' || echo ''",
+    model = "codellama:7b",
     install_cmd = "curl -fsSL https://ollama.com/install.sh | sh",
-    setup_info = "Local LLM. After install: ollama pull codellama",
+    setup_info = "Local LLM. After install: ollama pull codellama:7b",
     priority = 3,
   },
   openai = {
     name = "OpenAI",
     type = "api",
     command = "curl",
-    check_cmd = "which curl",
+    check_cmd = "which curl > /dev/null 2>&1 && echo 'found' || echo ''",
     api_key_env = "OPENAI_API_KEY",
     api_url = "https://api.openai.com/v1/chat/completions",
-    model = "gpt-4",
+    model = "gpt-3.5-turbo",
     install_cmd = "curl is already installed. Get API key from: https://platform.openai.com/api-keys",
     priority = 4,
   },
 }
 
--- Check if provider is available
+-- Check if provider is available - FIXED VERSION
 M.is_provider_available = function(provider_name)
   local provider = M.providers[provider_name]
   if not provider then
@@ -52,8 +54,8 @@ M.is_provider_available = function(provider_name)
   end
 
   -- Check if command exists
-  local path = vim.fn.system(provider.check_cmd):gsub("\n", "")
-  if path == "" then
+  local result = vim.fn.system(provider.check_cmd)
+  if not result or result:match("^%s*$") or not result:match("found") then
     return false, provider.command .. " not found. Install: " .. provider.install_cmd
   end
 
@@ -65,73 +67,56 @@ M.is_provider_available = function(provider_name)
     end
   end
 
+  -- Additional checks for local providers
+  if provider_name == "ollama" then
+    -- Check if model is available
+    local model_check = vim.fn.system("ollama list | grep " .. provider.model)
+    if not model_check or model_check == "" then
+      return false, "Model not found. Run: ollama pull " .. provider.model
+    end
+  end
+
   return true, nil
 end
 
 -- Get provider preference
 M.get_preferred_provider = function()
-  local preference = vim.g.mermaid_ai_provider or "claude"
-  return preference
+  return vim.g.mermaid_ai_provider or "opencode"
 end
 
--- Set provider preference (DEBUG VERSION)
+-- Set provider preference
 M.set_preferred_provider = function(provider_name)
-  print("=== SET_PREFERRED: Called with: " .. provider_name .. " ===")
-
   if not M.providers[provider_name] then
-    print("=== SET_PREFERRED: Provider not found: " .. provider_name .. " ===")
     vim.notify("Unknown provider: " .. provider_name, vim.log.levels.ERROR)
     return false
   end
 
-  print("=== SET_PREFERRED: Setting vim.g.mermaid_ai_provider to: " .. provider_name .. " ===")
   vim.g.mermaid_ai_provider = provider_name
-
-  print("=== SET_PREFERRED: Verifying - vim.g.mermaid_ai_provider is now: " ..
-    tostring(vim.g.mermaid_ai_provider) .. " ===")
-
   vim.notify("Default provider set to: " .. M.providers[provider_name].name, vim.log.levels.INFO)
   return true
 end
 
--- Get available providers in priority order (DEBUG VERSION)
+-- Get available providers
 M.get_available_providers = function()
   local available = {}
 
-  -- Check preferred provider first
-  local preferred = M.get_preferred_provider()
-  print("=== GET_AVAILABLE: Preferred provider: " .. preferred .. " ===")
-
-  local is_available, _ = M.is_provider_available(preferred)
-  if is_available then
-    table.insert(available, preferred)
-    print("=== GET_AVAILABLE: Added preferred: " .. preferred .. " ===")
-  end
-
-  -- Check other providers by priority
-  local sorted_providers = {}
+  -- Check all providers
   for name, config in pairs(M.providers) do
-    if name ~= preferred then
-      table.insert(sorted_providers, { name = name, priority = config.priority })
-    end
-  end
-
-  table.sort(sorted_providers, function(a, b) return a.priority < b.priority end)
-
-  for _, item in ipairs(sorted_providers) do
-    is_available, _ = M.is_provider_available(item.name)
+    local is_available, _ = M.is_provider_available(name)
     if is_available then
-      table.insert(available, item.name)
-      print("=== GET_AVAILABLE: Added provider: " .. item.name .. " ===")
+      table.insert(available, name)
     end
   end
 
-  print("=== GET_AVAILABLE: Final list: " .. vim.inspect(available) .. " ===")
+  -- Sort by priority
+  table.sort(available, function(a, b)
+    return M.providers[a].priority < M.providers[b].priority
+  end)
 
   return available
 end
 
--- Build command for different provider types
+-- Build command for different provider types - FIXED VERSION
 M.build_command = function(provider_name, prompt)
   local provider = M.providers[provider_name]
   local prompts_module = require("plugins.markdown-ai-prompts")
@@ -157,12 +142,18 @@ M.build_command = function(provider_name, prompt)
     cmd = string.format("cat %s | claude", vim.fn.shellescape(temp_prompt))
   elseif provider.type == "local" then
     if provider_name == "opencode" then
-      -- OpenCode: Use stdin instead of --prompt-file
-      cmd = string.format("cat %s | opencode", vim.fn.shellescape(temp_prompt))
+      -- Try different command variations
+      cmd = string.format("opencode -p %s", vim.fn.shellescape(temp_prompt))
+
+      -- Alternative if that doesn't work
+      local test = vim.fn.system("which opencode-cli 2>/dev/null")
+      if test and test ~= "" then
+        cmd = string.format("opencode-cli -p %s", vim.fn.shellescape(temp_prompt))
+      end
     elseif provider_name == "ollama" then
-      -- Ollama local LLM
-      local escaped = full_prompt:gsub("'", "'\\''")
-      cmd = string.format("ollama run %s '%s'", provider.model, escaped)
+      -- Ollama with explicit formatting
+      local escaped = full_prompt:gsub("'", "'\"'\"'")
+      cmd = string.format("ollama run %s --format json '%s'", provider.model, escaped)
     end
   elseif provider.type == "api" then
     -- API-based (OpenAI, etc)
@@ -171,15 +162,14 @@ M.build_command = function(provider_name, prompt)
       return nil, temp_prompt, "API key not found"
     end
 
-    -- Escape for JSON
-    local escaped_prompt = full_prompt:gsub('\\', '\\\\'):gsub('"', '\\"'):gsub('\n', '\\n')
-
-    local json_payload = string.format([[{
+    local temp_json = vim.fn.tempname() .. ".json"
+    local json_content = string.format([[
+{
   "model": "%s",
   "messages": [
     {
       "role": "system",
-      "content": "You are a Mermaid diagram code generator. Output ONLY valid Mermaid syntax in code blocks. NO explanations."
+      "content": "%s"
     },
     {
       "role": "user",
@@ -188,20 +178,22 @@ M.build_command = function(provider_name, prompt)
   ],
   "temperature": 0.3,
   "max_tokens": 4096
-}]], provider.model, escaped_prompt)
+}]],
+      provider.model,
+      "You are a Mermaid diagram generator. Output ONLY valid Mermaid syntax in ```mermaid code blocks.",
+      full_prompt:gsub('\\', '\\\\'):gsub('"', '\\"'):gsub('\n', '\\n'))
 
-    local temp_json = vim.fn.tempname() .. ".json"
     local json_file = io.open(temp_json, "w")
     if json_file then
-      json_file:write(json_payload)
+      json_file:write(json_content)
       json_file:close()
     end
 
     cmd = string.format(
-      "curl -s -X POST %s -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -d @%s",
+      'curl -s -X POST "%s" -H "Content-Type: application/json" -H "Authorization: Bearer %s" -d @%s',
       provider.api_url,
       api_key,
-      temp_json
+      vim.fn.shellescape(temp_json)
     )
 
     return cmd, temp_json, nil
@@ -219,18 +211,23 @@ M.extract_response = function(provider_name, raw_response)
     local ok, json = pcall(vim.fn.json_decode, raw_response)
 
     if not ok then
-      return nil, "Failed to parse JSON response"
+      -- Try to extract JSON from response
+      local json_match = raw_response:match("({.*})")
+      if json_match then
+        ok, json = pcall(vim.fn.json_decode, json_match)
+      end
     end
 
-    if json.choices and json.choices[1] and json.choices[1].message then
+    if ok and json and json.choices and json.choices[1] and json.choices[1].message then
       return json.choices[1].message.content, nil
     end
 
-    if json.error then
+    if ok and json and json.error then
       return nil, json.error.message or "API error"
     end
 
-    return nil, "Unexpected response format"
+    -- If not JSON, return raw response
+    return raw_response, nil
   end
 
   -- For CLI and local providers, return raw response
@@ -275,6 +272,7 @@ M.call_provider = function(prompt, callbacks)
 
     vim.fn.jobstart(cmd, {
       stdout_buffered = true,
+      stderr_buffered = true,
       on_stdout = function(_, data)
         if data then
           for _, line in ipairs(data) do
@@ -288,21 +286,15 @@ M.call_provider = function(prompt, callbacks)
         if data and #data > 0 then
           local err = table.concat(data, "\n")
           stderr_msg = stderr_msg .. err
-
-          -- Check for common errors
-          if err:match("rate limit") or
-              err:match("quota") or
-              err:match("429") or
-              err:match("exceeded") or
-              err:match("not found") or
-              err:match("connection") then
-            has_error = true
-            vim.notify(provider.name .. " error detected. Trying fallback...", vim.log.levels.WARN)
-          end
+          vim.notify("Provider error: " .. err, vim.log.levels.WARN)
+          has_error = true
         end
       end,
       on_exit = function(_, exit_code)
-        pcall(os.remove, temp_file)
+        -- Clean up temp files
+        if temp_file and vim.fn.filereadable(temp_file) == 1 then
+          os.remove(temp_file)
+        end
 
         local raw_response = table.concat(response_buffer, "\n")
 
@@ -326,7 +318,7 @@ M.call_provider = function(prompt, callbacks)
           else
             vim.notify("All providers failed", vim.log.levels.ERROR)
             if callbacks.on_error then
-              callbacks.on_error("All providers failed")
+              callbacks.on_error("All providers failed: " .. stderr_msg)
             end
           end
           return
@@ -355,169 +347,22 @@ M.select_provider_async = function(callback)
     return
   end
 
-  -- Clear and show menu
-  vim.cmd("redraw")
-  print("\n=== Select AI Provider ===\n")
+  -- Show in floating window
+  local lines = { "=== Select AI Provider ===", "" }
 
   for i, name in ipairs(available) do
     local provider = M.providers[name]
-    local type_label = ""
-    if provider.type == "local" then
-      type_label = " (Local, Free)"
-    elseif provider.type == "api" then
-      type_label = " (API, Paid)"
-    elseif provider.type == "cli" then
-      type_label = " (Cloud)"
-    end
-
-    print(string.format("[%d] %s%s", i, provider.name, type_label))
+    lines[#lines + 1] = string.format("[%d] %s", i, provider.name)
   end
 
-  print("[0] Cancel\n")
-
-  -- Get input with proper async handling
-  vim.ui.input(
-    { prompt = string.format("Enter number (1-%d): ", #available) },
-    function(input)
-      vim.cmd("redraw")
-
-      if not input then
-        vim.notify("Selection cancelled", vim.log.levels.INFO)
-        if callback then callback(nil) end
-        return
-      end
-
-      local choice = tonumber(input)
-
-      if not choice or choice == 0 then
-        vim.notify("Selection cancelled", vim.log.levels.INFO)
-        if callback then callback(nil) end
-        return
-      end
-
-      if choice < 1 or choice > #available then
-        vim.notify("Invalid selection: " .. choice, vim.log.levels.ERROR)
-        if callback then callback(nil) end
-        return
-      end
-
-      local selected = available[choice]
-      vim.notify("Selected: " .. M.providers[selected].name, vim.log.levels.INFO)
-
-      if callback then callback(selected) end
-    end
-  )
-end
-
--- Keep synchronous version for backward compatibility
-M.select_provider = function()
-  local available = M.get_available_providers()
-
-  if #available == 0 then
-    vim.notify("No AI providers available", vim.log.levels.ERROR)
-    return nil
-  end
-
-  vim.cmd("redraw")
-  print("\n=== Select AI Provider ===\n")
-
-  for i, name in ipairs(available) do
-    local provider = M.providers[name]
-    local type_label = ""
-    if provider.type == "local" then
-      type_label = " (Local, Free)"
-    elseif provider.type == "api" then
-      type_label = " (API, Paid)"
-    end
-
-    print(string.format("[%d] %s%s", i, provider.name, type_label))
-  end
-
-  print("[0] Cancel\n")
-
-  local input = vim.fn.input(string.format("Enter number (1-%d): ", #available))
-  vim.cmd("redraw")
-
-  local choice = tonumber(input)
-
-  if not choice or choice == 0 or choice < 1 or choice > #available then
-    return nil
-  end
-
-  return available[choice]
-end
-
--- Show provider status
-M.show_status = function()
-  local lines = { "AI Provider Status:", "" }
-
-  local preferred = M.get_preferred_provider()
-  lines[#lines + 1] = "Preferred: " .. M.providers[preferred].name
+  lines[#lines + 1] = "[0] Cancel"
   lines[#lines + 1] = ""
 
-  lines[#lines + 1] = "Available Providers:"
-
-  -- Sort by priority
-  local sorted = {}
-  for name, config in pairs(M.providers) do
-    table.insert(sorted, { name = name, config = config })
-  end
-  table.sort(sorted, function(a, b) return a.config.priority < b.config.priority end)
-
-  for _, item in ipairs(sorted) do
-    local name = item.name
-    local provider = item.config
-    local is_available, error_msg = M.is_provider_available(name)
-
-    local status_icon = is_available and "✓" or "✗"
-    local type_label = ""
-    if provider.type == "local" then
-      type_label = " [Local, Free]"
-    elseif provider.type == "api" then
-      type_label = " [API, Paid]"
-    elseif provider.type == "cli" then
-      type_label = " [CLI]"
-    end
-
-    local line = string.format("%s %s%s: %s",
-      status_icon,
-      provider.name,
-      type_label,
-      is_available and "Available" or "Not installed"
-    )
-    lines[#lines + 1] = line
-
-    if error_msg then
-      lines[#lines + 1] = "  " .. error_msg
-    end
-
-    if provider.setup_info and not is_available then
-      lines[#lines + 1] = "  " .. provider.setup_info
-    end
-  end
-
-  lines[#lines + 1] = ""
-  lines[#lines + 1] = "Automatic Fallback Chain:"
-  local available = M.get_available_providers()
-  if #available > 0 then
-    for i, name in ipairs(available) do
-      lines[#lines + 1] = string.format("%d. %s", i, M.providers[name].name)
-    end
-  else
-    lines[#lines + 1] = "No providers configured!"
-    lines[#lines + 1] = ""
-    lines[#lines + 1] = "Quick Setup (recommended):"
-    lines[#lines + 1] = "1. OpenCode: pip install opencode-ai (FREE, LOCAL)"
-    lines[#lines + 1] = "2. Ollama: curl -fsSL https://ollama.com/install.sh | sh"
-    lines[#lines + 1] = "3. Claude: npm install -g @anthropic-ai/claude-code"
-  end
-
-  -- Create floating window
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
-  local width = 75
-  local height = math.min(#lines + 2, vim.o.lines - 4)
+  local width = 40
+  local height = #lines + 2
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor",
     width = width,
@@ -526,15 +371,53 @@ M.show_status = function()
     row = (vim.o.lines - height) / 2,
     style = "minimal",
     border = "rounded",
-    title = " AI Providers ",
+    title = " Select Provider ",
     title_pos = "center",
   })
 
-  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', ':q<CR>', { noremap = true, silent = true })
-  vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', ':q<CR>', { noremap = true, silent = true })
+  -- Close function
+  local function close_win()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+    if vim.api.nvim_buf_is_valid(buf) then
+      vim.api.nvim_buf_delete(buf, { force = true })
+    end
+  end
 
-  vim.api.nvim_buf_set_option(buf, 'modifiable', false)
-  vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+  -- Set keymaps for each number
+  for i = 1, #available do
+    vim.api.nvim_buf_set_keymap(buf, 'n', tostring(i), '', {
+      noremap = true,
+      callback = function()
+        local selected = available[i]
+        close_win()
+        if callback then callback(selected) end
+      end
+    })
+  end
+
+  vim.api.nvim_buf_set_keymap(buf, 'n', '0', '', {
+    noremap = true,
+    callback = function()
+      close_win()
+      if callback then callback(nil) end
+    end
+  })
+
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', '', {
+    noremap = true,
+    callback = function()
+      close_win()
+      if callback then callback(nil) end
+    end
+  })
+
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '', {
+    noremap = true,
+    callback = function()
+      close_win()
+      if callback then callback(nil) end
+    end
+  })
 end
-
-return M
