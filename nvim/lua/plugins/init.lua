@@ -27,8 +27,6 @@ return require("lazy").setup({
   require("plugins.yazi"),
   require("plugins.markdown-render"),
   require("plugins.markdown-export"),
-  -- require("plugins.markdown-ai-prompts"),
-  -- require("plugins.markdown-ai-detector"),
   require("plugins.markdown-ai-opencode"),
   require("plugins.smear-cursor"),
   require("plugins.rust"),
