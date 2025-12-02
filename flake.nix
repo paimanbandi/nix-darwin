@@ -177,6 +177,9 @@
             claude-code
             opencode
             ollama
+
+            coreutils # includes timeout command
+
           ];
 
           nix.settings.experimental-features = [
