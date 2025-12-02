@@ -175,6 +175,7 @@
 
             # AI agent
             claude-code
+            opencode
           ];
 
           nix.settings.experimental-features = [
