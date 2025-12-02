@@ -1,4 +1,3 @@
--- Main plugin with multi-provider support and automatic fallback
 local M = {}
 local prompts = require("plugins.markdown-ai-prompts")
 local detector = require("plugins.markdown-ai-detector")
