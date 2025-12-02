@@ -176,6 +176,7 @@
             # AI agent
             claude-code
             opencode
+            ollama
           ];
 
           nix.settings.experimental-features = [
