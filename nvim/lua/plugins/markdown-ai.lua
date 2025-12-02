@@ -1,62 +1,62 @@
--- Plugin untuk generate Mermaid diagram menggunakan Claude AI
+-- Plugin untuk generate Mermaid diagram menggunakan Claude Code CLI
 local M = {}
 
--- Helper function untuk call Claude API
-M.call_claude_api = function(prompt, output_file, title)
-  local api_key = os.getenv("ANTHROPIC_API_KEY")
+-- Helper function untuk call Claude Code
+M.call_claude_code = function(prompt, output_file, title)
+  -- Check if claude-code is installed
+  local check_cmd = "which claude-code"
+  local claude_path = vim.fn.system(check_cmd):gsub("\n", "")
 
-  if not api_key then
-    vim.notify("ANTHROPIC_API_KEY not found! Set it in your environment", vim.log.levels.ERROR)
-    vim.notify("Run: export ANTHROPIC_API_KEY='your-key-here'", vim.log.levels.INFO)
+  if claude_path == "" then
+    vim.notify("Claude Code not found! Install it first:", vim.log.levels.ERROR)
+    vim.notify("npm install -g @anthropic-ai/claude-code", vim.log.levels.INFO)
+    vim.notify("claude-code auth login", vim.log.levels.INFO)
     return
   end
 
-  local json_prompt = vim.fn.json_encode(prompt)
-  json_prompt = json_prompt:gsub("'", "'\\''")
+  -- Create temp file with prompt
+  local temp_prompt = "/tmp/claude_prompt.txt"
+  local prompt_file = io.open(temp_prompt, "w")
+  if prompt_file then
+    prompt_file:write(prompt)
+    prompt_file:close()
+  end
 
-  local curl_cmd = string.format(
-    [[curl -s https://api.anthropic.com/v1/messages -H "content-type: application/json" -H "x-api-key: %s" -H "anthropic-version: 2023-06-01" -d '{"model": "claude-sonnet-4-20250514", "max_tokens": 4096, "messages": [{"role": "user", "content": %s}]}']],
-    api_key,
-    json_prompt
-  )
+  vim.notify("Generating Mermaid diagram with Claude Code...", vim.log.levels.INFO)
 
-  vim.fn.jobstart(curl_cmd, {
+  -- Call Claude Code
+  local cmd = string.format("claude-code < %s", vim.fn.shellescape(temp_prompt))
+
+  vim.fn.jobstart(cmd, {
     stdout_buffered = true,
     on_stdout = function(_, data)
       if data then
         local response = table.concat(data, "\n")
-        local ok, json = pcall(vim.fn.json_decode, response)
 
-        if ok and json.content and json.content[1] then
-          local mermaid_content = json.content[1].text
+        -- Extract mermaid content from response
+        local mermaid_content = response
 
-          local md_content = string.format([[# %s
+        local md_content = string.format([[# %s
 
 Generated Date: %s
 
 %s
 ]], title, os.date("%Y-%m-%d %H:%M:%S"), mermaid_content)
 
-          local file = io.open(output_file, "w")
-          if file then
-            file:write(md_content)
-            file:close()
+        local file = io.open(output_file, "w")
+        if file then
+          file:write(md_content)
+          file:close()
 
-            vim.notify("Diagram generated: " .. output_file, vim.log.levels.INFO)
+          vim.notify("Diagram generated: " .. output_file, vim.log.levels.INFO)
 
-            vim.cmd("edit " .. vim.fn.fnameescape(output_file))
+          vim.cmd("edit " .. vim.fn.fnameescape(output_file))
 
-            vim.schedule(function()
-              vim.cmd("MarkdownPreview")
-            end)
-          else
-            vim.notify("Failed to write file", vim.log.levels.ERROR)
-          end
+          vim.schedule(function()
+            vim.cmd("MarkdownPreview")
+          end)
         else
-          vim.notify("Failed to parse Claude response", vim.log.levels.ERROR)
-          if response then
-            print("Response:", response)
-          end
+          vim.notify("Failed to write file", vim.log.levels.ERROR)
         end
       end
     end,
@@ -64,13 +64,13 @@ Generated Date: %s
       if data and #data > 0 then
         local error_msg = table.concat(data, "\n")
         if error_msg ~= "" then
-          vim.notify("API Error: " .. error_msg, vim.log.levels.ERROR)
+          vim.notify("Error: " .. error_msg, vim.log.levels.ERROR)
         end
       end
     end,
     on_exit = function(_, exit_code)
       if exit_code ~= 0 then
-        vim.notify("Command failed with exit code: " .. exit_code, vim.log.levels.ERROR)
+        vim.notify("Command failed. Make sure you're logged in: claude-code auth login", vim.log.levels.ERROR)
       end
     end
   })
@@ -106,7 +106,6 @@ end
 
 -- Function untuk generate dari full file
 M.generate_from_file = function()
-  local filepath = vim.fn.expand('%:p')
   local filetype = vim.bo.filetype
   local filename = vim.fn.expand('%:t:r')
   local dir = vim.fn.expand('%:p:h')
@@ -116,12 +115,10 @@ M.generate_from_file = function()
 
   local output_file = dir .. "/" .. filename .. "_diagram.md"
 
-  vim.notify("Generating Mermaid diagram with Claude AI...", vim.log.levels.INFO)
-
   local prompt = M.build_prompt(filetype, code_content)
   local title = filename .. " - Generated Diagram\n\nGenerated from: " .. vim.fn.expand('%:t')
 
-  M.call_claude_api(prompt, output_file, title)
+  M.call_claude_code(prompt, output_file, title)
 end
 
 -- Function untuk generate dari visual selection
@@ -146,12 +143,10 @@ M.generate_from_selection = function()
   local dir = vim.fn.expand('%:p:h')
   local output_file = dir .. "/selection_diagram.md"
 
-  vim.notify("Generating Mermaid from selection...", vim.log.levels.INFO)
-
   local prompt = M.build_prompt(filetype, code_content)
   local title = "Selection Diagram\n\nGenerated from visual selection"
 
-  M.call_claude_api(prompt, output_file, title)
+  M.call_claude_code(prompt, output_file, title)
 end
 
 return {
@@ -162,7 +157,7 @@ return {
       function()
         M.generate_from_file()
       end,
-      desc = "Generate Mermaid with Claude AI"
+      desc = "Generate Mermaid with Claude Code"
     },
     {
       "<leader>mG",
