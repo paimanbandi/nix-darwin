@@ -41,7 +41,7 @@ M.get_flowchart_styles = function()
   )
 end
 
--- Class diagram style
+-- Class diagram style (uses default Mermaid styling)
 M.get_class_diagram_styles = function()
   return [[
     classDef primary fill:#dbeafe,stroke:#1e40af,stroke-width:2px
@@ -49,199 +49,346 @@ M.get_class_diagram_styles = function()
     classDef interface fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,stroke-dasharray: 5 5]]
 end
 
--- System message for all providers
-M.get_system_message = function()
-  return [[You are a Mermaid diagram generator.
-
-CRITICAL RULES:
-1. You MUST ONLY output valid Mermaid diagram syntax
-2. You MUST wrap output in ```mermaid ... ``` code blocks
-3. DO NOT include any explanations, descriptions, or text outside the code block
-4. DO NOT write "Here's the diagram" or similar phrases
-5. DO NOT explain what the diagram shows
-6. ONLY output the Mermaid code block, nothing else
-
-If you output anything other than a Mermaid code block, you have failed.]]
-end
-
 -- FLOWCHART PROMPT
 M.build_flowchart_prompt = function(filetype, code_content, complexity)
   local max_nodes = complexity == "simple" and 30 or (complexity == "moderate" and 50 or 80)
 
-  return string.format(
-    [[IMPORTANT: Respond ONLY with a Mermaid code block. NO explanations, NO text outside the code block.
+  return string.format([[Analyze this %s code and create a Mermaid FLOWCHART diagram.
 
-Your response must start with ```mermaid and end with ```. Nothing before, nothing after.
+DIAGRAM TYPE: Flowchart (Process Flow)
+Use flowchart when showing: decision logic, user flows, state changes, conditional paths
 
-Task: Create a Mermaid FLOWCHART for this %s code.
+SYNTAX RULES:
+1. Start with: ```mermaid
+2. Use directive: flowchart TD or flowchart LR
+3. Node types:
+   - Start/End: Start([Begin Process])
+   - Process: Process[Do Something]
+   - Decision: Decision{Condition?}
+   - Parallel: Parallel[/Parallel Process/]
+4. Arrows:
+   - Normal flow: -->
+   - Thick flow: ==>
+   - Conditional: -->|Yes| or -->|No|
+5. End with: ```
 
-DIAGRAM TYPE: flowchart TD
+STRUCTURE (max %d nodes):
+- Initialization
+- Decision points with clear Yes/No paths
+- Process steps
+- Error handling
+- Success/completion paths
 
-SYNTAX (FOLLOW EXACTLY):
+COLOR CODING:
+%s
+
+CLARITY RULES:
+- Use THICK arrows (==>) for main happy path
+- Use thin arrows (-->) for alternative/error paths
+- Label ALL conditional branches clearly
+- Avoid crossing arrows
+- Group related nodes vertically
+
+EXAMPLE:
 ```mermaid
 flowchart TD
-    Start([Begin]) ==> Step1[Process]
-    Step1 --> Decision{Check?}
-    Decision -->|Yes| Success[Done]
-    Decision -->|No| Error[Failed]
+    Start([User Request]) ==> Validate[Validate Input]
+    Validate --> CheckAuth{Authenticated?}
 
-    style Start fill:#1e40af,stroke:#1e40af,stroke-width:3px,color:#fff
-    style Decision fill:#fed7aa,stroke:#d97706,stroke-width:2px,color:#000
-```
+    CheckAuth -->|Yes| Process[Process Request]
+    CheckAuth -->|No| Error[Return 401 Error]
 
-REQUIREMENTS:
-- Max %d nodes
-- Use --> for normal flow, ==> for main path
-- Simple node IDs: Start, CheckAuth, LoadData, etc.
-- Apply color styles at the end
-- NO text outside the code block
+    Process ==> CallAPI[Call External API]
+    CallAPI --> CheckResponse{Response OK?}
 
-COLOR STYLES TO USE:
+    CheckResponse -->|Yes| Success[Return Success]
+    CheckResponse -->|No| Retry{Retry Count < 3?}
+
+    Retry -->|Yes| CallAPI
+    Retry -->|No| Error
+
+    Success ==> End([Complete])
+    Error --> End
+
 %s
+```
 
 Code to analyze:
 ```%s
 %s
 ```
 
-REMEMBER: Output ONLY the ```mermaid code block. NO explanations.]],
-    filetype, max_nodes, M.get_flowchart_styles(), filetype, code_content)
+Create a clear flowchart showing the process flow with proper arrow emphasis.]],
+    filetype, max_nodes, M.get_flowchart_styles(), M.get_flowchart_styles(), filetype, code_content)
 end
 
 -- SEQUENCE DIAGRAM PROMPT
 M.build_sequence_prompt = function(filetype, code_content)
-  return string.format([[IMPORTANT: Respond ONLY with a Mermaid code block. NO explanations.
+  return string.format([[Analyze this %s code and create a Mermaid SEQUENCE diagram.
 
-Your entire response must be ONLY:
-```mermaid
-sequenceDiagram
-    [diagram content]
-```
+DIAGRAM TYPE: Sequence Diagram (Time-based Interactions)
+Use sequence when showing: API calls, method invocations, async operations, service communication
 
-Nothing else. No text before or after the code block.
+SYNTAX RULES:
+1. Start with: ```mermaid
+2. Use directive: sequenceDiagram
+3. Participants: participant Name as Display Name
+4. Interactions:
+   - Sync call: A->>B: Message
+   - Async call: A->>+B: Message (activate)
+   - Return: B-->>-A: Response (deactivate)
+   - Note: Note over A,B: Description
+5. Control:
+   - Loop: loop Every 5 seconds
+   - Alt: alt Success / else Failure
+   - Opt: opt Optional flow
 
-Task: Create a Mermaid SEQUENCE diagram for this %s code.
+STRUCTURE:
+1. Define all participants first
+2. Show initialization
+3. Main interaction flow
+4. Error/alternative paths
+5. Cleanup/completion
 
-SYNTAX EXAMPLE:
+CLARITY RULES:
+- Use meaningful participant names
+- Add notes for complex logic
+- Show activation boxes for processing
+- Use alt/opt for conditional flows
+- Group related interactions
+
+EXAMPLE:
 ```mermaid
 sequenceDiagram
     participant User
     participant Client
     participant API
+    participant DB
 
-    User->>+Client: Click Button
-    Client->>+API: POST /data
-    API-->>-Client: 200 OK
-    Client-->>-User: Show Success
+    User->>+Client: Click Submit
+    Client->>Client: Validate Input
+
+    Client->>+API: POST /api/data
+    Note over Client,API: Request with auth token
+
+    API->>+DB: Query Data
+    DB-->>-API: Return Results
+
+    alt Success
+        API-->>Client: 200 OK with data
+        Client-->>User: Show Success
+    else Error
+        API-->>Client: 400 Bad Request
+        Client-->>-User: Show Error
+    end
+
+    User->>Client: Close Dialog
 ```
-
-REQUIREMENTS:
-- Show time-based interactions
-- Use ->> for calls, -->> for responses
-- Add + for activate, - for deactivate
-- Use alt/opt for conditional flows
 
 Code to analyze:
 ```%s
 %s
 ```
 
-OUTPUT: Only the ```mermaid code block, nothing else.]],
+Create a sequence diagram showing time-based interactions between components.]],
     filetype, filetype, code_content)
 end
 
 -- CLASS DIAGRAM PROMPT
 M.build_class_diagram_prompt = function(filetype, code_content)
-  return string.format([[IMPORTANT: Output ONLY the Mermaid code block. NO explanations.
+  return string.format([[Analyze this %s code and create a Mermaid CLASS diagram.
 
-Format:
-```mermaid
-classDiagram
-    [diagram content]
-```
+DIAGRAM TYPE: Class Diagram (Object Structure)
+Use class diagram when showing: classes, interfaces, inheritance, composition, aggregation
 
-Task: Create a Mermaid CLASS diagram for this %s code.
+SYNTAX RULES:
+1. Start with: ```mermaid
+2. Use directive: classDiagram
+3. Class definition:
+   class ClassName {
+       +publicProperty type
+       -privateProperty type
+       +publicMethod() returnType
+       -privateMethod() returnType
+   }
+4. Relationships:
+   - Inheritance: Parent <|-- Child
+   - Implementation: Interface <|.. Class
+   - Composition: Whole *-- Part
+   - Aggregation: Container o-- Item
+   - Association: ClassA --> ClassB
+   - Dependency: ClassA ..> ClassB
 
-SYNTAX EXAMPLE:
+STRUCTURE:
+1. Define all classes/interfaces
+2. Show properties and methods
+3. Define relationships
+4. Apply styling
+
+CLARITY RULES:
+- Show only relevant properties/methods
+- Use clear relationship types
+- Group related classes
+- Add notes for complex relationships
+
+STYLING:
+%s
+
+EXAMPLE:
 ```mermaid
 classDiagram
     class User {
         +String id
         +String name
+        +String email
+        -String password
         +login() boolean
+        +logout() void
     }
 
     class Admin {
         +String[] permissions
+        +manageUsers() void
     }
 
-    User <|-- Admin
+    class Session {
+        +String token
+        +Date expiresAt
+        +isValid() boolean
+    }
+
+    User <|-- Admin : inherits
+    User "1" --> "0..*" Session : has
 
     class User:::primary
+    class Admin:::secondary
+    class Session:::interface
 ```
-
-STYLING:
-%s
 
 Code to analyze:
 ```%s
 %s
 ```
 
-OUTPUT: Only ```mermaid block.]],
+Create a class diagram showing object structure and relationships.]],
     filetype, M.get_class_diagram_styles(), filetype, code_content)
 end
 
 -- STATE DIAGRAM PROMPT
 M.build_state_diagram_prompt = function(filetype, code_content)
-  return string.format([[IMPORTANT: Output ONLY Mermaid code. NO explanations.
+  return string.format([[Analyze this %s code and create a Mermaid STATE diagram.
 
-Task: Create a STATE diagram for this %s code.
+DIAGRAM TYPE: State Diagram (State Transitions)
+Use state diagram when showing: state machines, lifecycle, status changes, workflow states
 
-SYNTAX:
+SYNTAX RULES:
+1. Start with: ```mermaid
+2. Use directive: stateDiagram-v2
+3. States: state "Display Name" as StateId
+4. Transitions: StateA --> StateB : Event/Action
+5. Special:
+   - Start: [*] --> FirstState
+   - End: LastState --> [*]
+   - Choice: state choice <<choice>>
+   - Fork: state fork <<fork>>
+
+STRUCTURE:
+1. Define all states
+2. Show initial state
+3. Define transitions with events
+4. Show final states
+5. Add nested states if needed
+
+EXAMPLE:
 ```mermaid
 stateDiagram-v2
     [*] --> Idle
-    Idle --> Loading : Start
-    Loading --> Success : Done
-    Loading --> Error : Failed
-    Success --> [*]
-    Error --> [*]
+
+    Idle --> Loading : User Submit
+    Loading --> Success : Data Loaded
+    Loading --> Error : Load Failed
+
+    Success --> Idle : Reset
+    Error --> Idle : Retry
+    Error --> [*] : Cancel
+
+    Success --> Processing : User Confirm
+    Processing --> Complete : Process Done
+    Complete --> [*]
+
+    state Loading {
+        [*] --> FetchingData
+        FetchingData --> ValidatingData
+        ValidatingData --> [*]
+    }
 ```
 
-Code:
+Code to analyze:
 ```%s
 %s
 ```
 
-OUTPUT: Only ```mermaid block.]],
+Create a state diagram showing state transitions and events.]],
     filetype, filetype, code_content)
 end
 
 -- ER DIAGRAM PROMPT
 M.build_er_diagram_prompt = function(filetype, code_content)
-  return string.format([[IMPORTANT: Output ONLY Mermaid code.
+  return string.format([[Analyze this %s code and create a Mermaid ER diagram.
 
-Task: Create ER diagram for this %s code.
+DIAGRAM TYPE: Entity Relationship Diagram (Database Schema)
+Use ER diagram when showing: database tables, relationships, foreign keys
 
-SYNTAX:
+SYNTAX RULES:
+1. Start with: ```mermaid
+2. Use directive: erDiagram
+3. Entities: EntityName { type attribute }
+4. Relationships:
+   - One to One: Entity1 ||--|| Entity2 : relationship
+   - One to Many: Entity1 ||--o{ Entity2 : relationship
+   - Many to Many: Entity1 }o--o{ Entity2 : relationship
+
+EXAMPLE:
 ```mermaid
 erDiagram
     USER ||--o{ ORDER : places
     ORDER ||--|{ LINE_ITEM : contains
+    PRODUCT ||--o{ LINE_ITEM : "ordered in"
 
     USER {
         int id PK
         string email
+        string name
+        datetime created_at
+    }
+
+    ORDER {
+        int id PK
+        int user_id FK
+        decimal total
+        datetime created_at
+    }
+
+    PRODUCT {
+        int id PK
+        string name
+        decimal price
+    }
+
+    LINE_ITEM {
+        int id PK
+        int order_id FK
+        int product_id FK
+        int quantity
     }
 ```
 
-Code:
+Code to analyze:
 ```%s
 %s
 ```
 
-OUTPUT: Only ```mermaid block.]],
+Create an ER diagram showing database structure.]],
     filetype, filetype, code_content)
 end
 
