@@ -143,8 +143,8 @@ M.build_command = function(provider_name, prompt)
     cmd = string.format("cat %s | claude", vim.fn.shellescape(temp_prompt))
   elseif provider.type == "local" then
     if provider_name == "opencode" then
-      -- OpenCode local execution
-      cmd = string.format("opencode generate --prompt-file %s", vim.fn.shellescape(temp_prompt))
+      -- OpenCode: Use stdin instead of --prompt-file
+      cmd = string.format("cat %s | opencode", vim.fn.shellescape(temp_prompt))
     elseif provider_name == "ollama" then
       -- Ollama local LLM
       local escaped = full_prompt:gsub("'", "'\\''")
@@ -344,8 +344,10 @@ M.select_provider = function()
     return nil
   end
 
-  -- Build menu with proper numbering
-  local menu_items = {}
+  -- Build menu items with unique shortcuts
+  local shortcuts = { "C", "O", "L", "A", "E", "F", "G", "H" } -- Unique letters
+  local menu_lines = {}
+
   for i, name in ipairs(available) do
     local provider = M.providers[name]
     local desc = provider.name
@@ -354,26 +356,22 @@ M.select_provider = function()
     elseif provider.type == "api" then
       desc = desc .. " (API, Paid)"
     end
-    table.insert(menu_items, desc)
+
+    -- Use unique shortcut letter
+    local shortcut = shortcuts[i] or tostring(i)
+    table.insert(menu_lines, "&" .. shortcut .. ". " .. desc)
   end
 
-  -- Add cancel option
-  table.insert(menu_items, "Cancel")
+  table.insert(menu_lines, "&Cancel")
 
-  -- Build confirm string
-  local options = "Select AI Provider:\n"
-  for i, item in ipairs(menu_items) do
-    options = options .. "&" .. i .. ". " .. item .. "\n"
-  end
+  local options = table.concat(menu_lines, "\n")
+  local choice = vim.fn.confirm("Select AI Provider:", options, 1)
 
-  local choice = vim.fn.confirm("Select AI Provider:", table.concat(menu_items, "\n"), 1)
-
-  -- Handle cancel or invalid choice
+  -- Handle cancel or invalid
   if choice == 0 or choice > #available then
     return nil
   end
 
-  -- Return the selected provider (choice is 1-indexed, matches array)
   return available[choice]
 end
 
