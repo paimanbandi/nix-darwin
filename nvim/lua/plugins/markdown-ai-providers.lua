@@ -344,7 +344,8 @@ M.select_provider = function()
     return nil
   end
 
-  local options = "Select AI Provider:\n"
+  -- Build menu with proper numbering
+  local menu_items = {}
   for i, name in ipairs(available) do
     local provider = M.providers[name]
     local desc = provider.name
@@ -353,16 +354,26 @@ M.select_provider = function()
     elseif provider.type == "api" then
       desc = desc .. " (API, Paid)"
     end
-    options = options .. "&" .. i .. ". " .. desc .. "\n"
+    table.insert(menu_items, desc)
   end
-  options = options .. "&Cancel"
 
-  local choice = vim.fn.confirm(options, options, 1)
+  -- Add cancel option
+  table.insert(menu_items, "Cancel")
 
+  -- Build confirm string
+  local options = "Select AI Provider:\n"
+  for i, item in ipairs(menu_items) do
+    options = options .. "&" .. i .. ". " .. item .. "\n"
+  end
+
+  local choice = vim.fn.confirm("Select AI Provider:", table.concat(menu_items, "\n"), 1)
+
+  -- Handle cancel or invalid choice
   if choice == 0 or choice > #available then
     return nil
   end
 
+  -- Return the selected provider (choice is 1-indexed, matches array)
   return available[choice]
 end
 
