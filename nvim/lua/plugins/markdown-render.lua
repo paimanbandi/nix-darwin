@@ -54,13 +54,6 @@ return {
       })
     end,
   },
-
-  -- HAPUS atau COMMENT markview.nvim
-  -- {
-  --   "OXY2DEV/markview.nvim",
-  --   ...
-  -- },
-
   {
     "iamcco/markdown-preview.nvim",
     keys = {
