@@ -173,10 +173,14 @@
               };
             }))
 
-            # AI agent
-            claude-code
+            # Coding Assistant
+            claude-codCoding
+            Assistant
+
+            # LLM
             opencode
             ollama
+            mistral-rs
 
             coreutils # includes timeout command
 
