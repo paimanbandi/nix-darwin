@@ -180,7 +180,6 @@
             # LLM
             opencode
             ollama
-            mistral-rs
 
             coreutils # includes timeout command
 
