@@ -327,7 +327,7 @@ M.keymaps = {
     desc = "📊 Generate Simple Diagram (Auto)"
   },
   {
-    "<leader>md",
+    "<leader>mo",
     function() M.generate_manual() end,
     desc = "📝 Generate Diagram (Choose type)"
   },
