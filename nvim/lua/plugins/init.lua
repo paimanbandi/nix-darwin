@@ -39,6 +39,7 @@ return require("lazy").setup({
   require("plugins.dropbar"),
   require("plugins.multi-cursor"),
   require("plugins.flash"),
+  require("plugins.gen"),
 }, {
   install = { missing = false },
   checker = { enabled = false },
