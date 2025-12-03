@@ -1,82 +1,65 @@
--- ~/.config/nvim/lua/plugins/markdown.lua
 return {
   {
-    "OXY2DEV/markview.nvim",
-    lazy = false,
+    "MeanderingProgrammer/render-markdown.nvim",
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
       "nvim-tree/nvim-web-devicons"
     },
-    config = function()
-      require("markview").setup({
-        modes = { "n", "no", "c" },
-        hybrid_modes = { "n" },
-
-        -- Heading styles
-        headings = {
-          enable = true,
-          shift_width = 0,
-          heading_1 = {
-            style = "icon",
-            icon = "󰼏  ",
-            hl = "MarkviewHeading1"
-          },
-          heading_2 = {
-            style = "icon",
-            icon = "󰎨  ",
-            hl = "MarkviewHeading2"
-          },
-          heading_3 = {
-            style = "icon",
-            icon = "󰼑  ",
-            hl = "MarkviewHeading3"
-          },
+    opts = {
+      code = {
+        sign = false,
+        width = 'block',
+        right_pad = 1,
+        disable_background = { "mermaid" },
+      },
+      heading = {
+        sign = false,
+        icons = { '# ', '## ', '### ', '#### ', '##### ', '###### ' },
+        backgrounds = { 'DiffAdd', 'DiffChange', 'DiffDelete', 'Normal', 'Normal', 'Normal' },
+        foregrounds = {
+          'MarkdownH1',
+          'MarkdownH2',
+          'MarkdownH3',
+          'MarkdownH4',
+          'MarkdownH5',
+          'MarkdownH6',
         },
-
-        -- Code blocks
-        code_blocks = {
-          enable = true,
-          style = "language",
-          pad_amount = 1,
-        },
-
-        -- Checkboxes
-        checkboxes = {
-          enable = true,
-          checked = { text = "✔", hl = "MarkviewCheckboxChecked" },
-          unchecked = { text = "✘", hl = "MarkviewCheckboxUnchecked" },
-          pending = { text = "⏳", hl = "MarkviewCheckboxPending" },
-        },
-
-        -- Horizontal rules
-        horizontal_rules = {
-          enable = true,
-        },
-
-        -- Links
-        links = {
-          enable = true,
-          hyperlinks = {
-            icon = "🔗 ",
-          },
-        },
-
-        callbacks = {
-          on_enable = function(_, win)
-            vim.wo[win].conceallevel = 2
-            vim.wo[win].concealcursor = "c"
-          end
-        },
-
-        -- HAPUS buf_ignore - biar AI docs juga di-render
-      })
+      },
+      bullet = {
+        enabled = true,
+        icons = { '•', '◦', '▸', '▹' },
+      },
+      checkbox = {
+        enabled = true,
+        unchecked = { icon = '☐ ' },
+        checked = { icon = '☑ ' },
+      },
+    },
+    ft = { "markdown" },
+    config = function(_, opts)
+      require("render-markdown").setup(opts)
 
       -- Keybindings
-      vim.keymap.set("n", "<leader>mw", "<cmd>Markview toggle<cr>", { desc = "Toggle Markview" })
-      vim.keymap.set("n", "<leader>mwe", "<cmd>Markview enableAll<cr>", { desc = "Enable Markview" })
-      vim.keymap.set("n", "<leader>mwd", "<cmd>Markview disableAll<cr>", { desc = "Disable Markview" })
-    end
+      vim.keymap.set("n", "<leader>mr", "<cmd>RenderMarkdown toggle<cr>", { desc = "Toggle Render Markdown" })
+      vim.keymap.set("n", "<leader>me", "<cmd>RenderMarkdown enable<cr>", { desc = "Enable Render Markdown" })
+      vim.keymap.set("n", "<leader>md", "<cmd>RenderMarkdown disable<cr>", { desc = "Disable Render Markdown" })
+
+      -- Custom highlights
+      vim.api.nvim_set_hl(0, "RenderMarkdownCode", {
+        bg = "#1a1b26"
+      })
+      vim.api.nvim_set_hl(0, "RenderMarkdownCodeInline", {
+        bg = "#24283b",
+        fg = "#7aa2f7"
+      })
+    end,
   },
+
+  -- HAPUS atau COMMENT markview.nvim
+  -- {
+  --   "OXY2DEV/markview.nvim",
+  --   ...
+  -- },
 
   {
     "iamcco/markdown-preview.nvim",
