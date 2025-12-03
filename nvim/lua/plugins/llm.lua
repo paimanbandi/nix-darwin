@@ -31,12 +31,12 @@ return {
         code
       )
 
-      vim.notify("🤖 " .. action_name .. "...", vim.log.levels.INFO)
+      vim.notify(action_name .. "...", vim.log.levels.INFO)
 
       local tmp_file = vim.fn.tempname()
       local f = io.open(tmp_file, "w")
       if not f then
-        vim.notify("❌ Failed to create temp file", vim.log.levels.ERROR)
+        vim.notify("Failed to create temp file", vim.log.levels.ERROR)
         return
       end
 
@@ -54,7 +54,6 @@ return {
       local output_dir = nil
 
       if save_to_file then
-        -- Get current file directory
         local current_file_path = vim.fn.expand("%:p")
         if current_file_path == "" then
           output_dir = vim.fn.getcwd()
@@ -70,11 +69,9 @@ return {
         local timestamp = os.date("%Y%m%d_%H%M%S")
         local action_slug = action_name:lower():gsub(" ", "_")
 
-        -- Build full path
         output_file = string.format("%s/%s_%s_%s.md", output_dir, current_file, action_slug, timestamp)
 
-        -- Debug: show where file will be saved
-        vim.notify("📁 Will save to: " .. output_file, vim.log.levels.INFO)
+        vim.notify("Will save to: " .. output_file, vim.log.levels.INFO)
       end
 
       vim.cmd("vsplit")
@@ -83,7 +80,7 @@ return {
 
       if output_file then
         vim.api.nvim_buf_set_name(response_buf, output_file)
-        vim.bo[response_buf].buftype = "" -- Make it a real file
+        vim.bo[response_buf].buftype = ""
         vim.bo[response_buf].buflisted = true
       else
         vim.api.nvim_buf_set_name(response_buf, "Ollama: " .. action_name)
@@ -148,11 +145,11 @@ return {
             loading_timer:stop()
             vim.schedule(function()
               vim.api.nvim_buf_set_lines(response_buf, 0, -1, false, {
-                "❌ Error occurred:",
+                "Error occurred:",
                 "",
                 unpack(data)
               })
-              vim.notify("❌ Error: " .. table.concat(data, "\n"), vim.log.levels.ERROR)
+              vim.notify("Error: " .. table.concat(data, "\n"), vim.log.levels.ERROR)
             end)
           end
         end,
@@ -165,40 +162,36 @@ return {
             if exit_code == 0 then
               if not has_response then
                 vim.api.nvim_buf_set_lines(response_buf, 0, -1, false, {
-                  "⚠️  No response received from Ollama.",
+                  "No response received from Ollama.",
                 })
               else
                 vim.bo[response_buf].filetype = "markdown"
 
                 if output_file then
-                  -- Force save
                   vim.bo[response_buf].modified = true
 
-                  -- Try to save
                   local save_ok, save_err = pcall(function()
                     vim.cmd("write!")
                   end)
 
                   if save_ok then
-                    -- Verify file exists
                     if vim.fn.filereadable(output_file) == 1 then
-                      vim.notify("✅ Saved to: " .. output_file, vim.log.levels.INFO)
+                      vim.notify("Saved to: " .. output_file, vim.log.levels.INFO)
                     else
-                      vim.notify("⚠️  Write command succeeded but file not found: " .. output_file, vim.log.levels.WARN)
+                      vim.notify("Write command succeeded but file not found: " .. output_file, vim.log.levels.WARN)
                     end
                   else
-                    vim.notify("❌ Failed to save: " .. tostring(save_err), vim.log.levels.ERROR)
-                    vim.notify("💡 Try manual save: :w " .. output_file, vim.log.levels.INFO)
+                    vim.notify("Failed to save: " .. tostring(save_err), vim.log.levels.ERROR)
                   end
                 else
-                  vim.notify("✅ Done!", vim.log.levels.INFO)
+                  vim.notify("Done!", vim.log.levels.INFO)
                 end
               end
             else
               vim.api.nvim_buf_set_lines(response_buf, 0, -1, false, {
-                "❌ Request failed (exit code: " .. exit_code .. ")",
+                "Request failed (exit code: " .. exit_code .. ")",
               })
-              vim.notify("❌ Failed with exit code: " .. exit_code, vim.log.levels.ERROR)
+              vim.notify("Failed with exit code: " .. exit_code, vim.log.levels.ERROR)
             end
 
             vim.fn.delete(tmp_file)
