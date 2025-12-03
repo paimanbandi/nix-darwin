@@ -1,8 +1,11 @@
--- markdown-ai-prompts.lua (PERBAIKAN)
--- Mermaid diagram prompts for ALL diagram types
+-- markdown-ai-prompts.lua
+-- Mermaid diagram prompts for all 19 diagram types
+-- Optimized for Ollama code analysis models
 local M = {}
 
--- Professional color palette
+-- ========================================
+-- COLOR PALETTE
+-- ========================================
 M.colors = {
   primary = "#1e40af",
   secondary = "#0891b2",
@@ -20,7 +23,10 @@ M.colors = {
   neutral_light = "#f1f5f9",
 }
 
--- Flowchart style definitions
+-- ========================================
+-- STYLE DEFINITIONS
+-- ========================================
+
 M.get_flowchart_styles = function()
   return string.format([[
     classDef startEnd fill:%s,stroke:%s,stroke-width:3px,color:#fff
@@ -40,7 +46,6 @@ M.get_flowchart_styles = function()
   )
 end
 
--- Class diagram style
 M.get_class_diagram_styles = function()
   return [[
     classDef primary fill:#dbeafe,stroke:#1e40af,stroke-width:2px
@@ -48,803 +53,503 @@ M.get_class_diagram_styles = function()
     classDef interface fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,stroke-dasharray: 5 5]]
 end
 
--- FLOWCHART PROMPT
+-- ========================================
+-- CORE DIAGRAMS (Top 5 most used)
+-- ========================================
+
+-- 1. FLOWCHART
 M.build_flowchart_prompt = function(filetype, code_content, complexity)
   local max_nodes = complexity == "simple" and 30 or (complexity == "moderate" and 50 or 80)
 
-  return string.format([[Analyze this %s code and create a Mermaid FLOWCHART diagram.
+  return string.format([[Analyze this %s code and create a Mermaid flowchart.
 
-CRITICAL SYNTAX RULES - MUST FOLLOW EXACTLY:
-1. Start with ONLY: ```mermaid
-2. Second line MUST be: flowchart TD
-3. Node format: NodeID[Label Text]:::className
-4. Arrow format: NodeA --> NodeB or NodeA ==> NodeB
-5. Conditional: NodeA -->|Label| NodeB
-6. Apply styles at THE END after all nodes and arrows
-7. End with: ```
+OUTPUT RULES:
+1. Start with: ```mermaid
+2. Second line: flowchart TD
+3. Format: NodeID[Label]:::class --> NextID[Label]:::class
+4. Apply styles at END
+5. End with: ```
 
-STRUCTURE (max %d nodes):
-- Start/End nodes with :::startEnd
-- Process nodes with :::process
-- Decision nodes with :::decision
-- API calls with :::api
-- Success states with :::success
-- Error states with :::error
-
-REQUIRED FORMAT:
-````````````````````````mermaid
+EXAMPLE:
+```mermaid
 flowchart TD
     Start([Begin]):::startEnd
-    Process[Do Something]:::process
+    Process[Action]:::process
     Decision{Check?}:::decision
 
-    Start ==> Process
+    Start --> Process
     Process --> Decision
-    Decision -->|Yes| Success[Success]:::success
-    Decision -->|No| Error[Error]:::error
-    Success --> End([Complete]):::startEnd
-    Error --> End
+    Decision -->|Yes| Success[Done]:::success
+    Decision -->|No| Error[Failed]:::error
 
 %s
-````````````````````````
+```
 
-CRITICAL RULES:
-- NO text before ```mermaid
-- NO explanatory text between diagram elements
-- ALL class definitions at the END
-- Use ONLY standard ASCII characters in labels
-- NO special characters like quotes in node labels
-- Keep labels SHORT (max 30 characters)
+Max nodes: %d
+Keep labels SHORT (max 25 chars)
+NO quotes in labels
 
-Code to analyze:
-````````````````````````%s
+Code (%s):
 %s
-````````````````````````
 
-Generate ONLY the mermaid diagram code block with proper syntax.]],
-    filetype, max_nodes, M.get_flowchart_styles(), filetype, code_content)
+OUTPUT ONLY mermaid code:]], filetype, M.get_flowchart_styles(), max_nodes, filetype, code_content:sub(1, 2500))
 end
 
--- SEQUENCE DIAGRAM PROMPT (FIXED)
+-- 2. SEQUENCE DIAGRAM
 M.build_sequence_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid SEQUENCE diagram.
+  return string.format([[Analyze this %s code and create a Mermaid sequence diagram.
 
-CRITICAL SYNTAX RULES - MUST FOLLOW EXACTLY:
-1. Start with ONLY: ```mermaid
-2. Second line MUST be: sequenceDiagram
-3. Define participants first: participant ID as Display Name
-4. Use simple arrows: ->> for calls, -->> for returns
-5. Activation: ->>+ to activate, -->>- to deactivate
-6. NO rect rgb() blocks - they cause syntax errors
-7. Use box instead: box LightBlue Description
-8. Notes: Note over A,B: Text or Note right of A: Text
-9. End with: ```
+CRITICAL: Generate COMPLETE diagram with ALL interactions!
 
-STRUCTURE:
-1. Define ALL participants
-2. Show interactions with clear arrows
-3. Use alt/opt/loop for control flow
-4. Add notes for clarity
-5. Use autonumber for step numbers
+ARROW RULES (CRITICAL):
+- Use ->> for calls (single dash)
+- Use -->> for returns (double dash)
+- NEVER use 3+ dashes (--->> is INVALID)
 
-REQUIRED FORMAT:
-````````````````````````mermaid
+OUTPUT RULES:
+1. Start with: ```mermaid
+2. Second line: sequenceDiagram
+3. Define participants
+4. Show ALL interactions
+5. Use alt/else for conditionals
+6. End with: ```
+
+EXAMPLE:
+```mermaid
 sequenceDiagram
     autonumber
     participant User
-    participant Client
-    participant API
+    participant System
     participant DB
 
-    User->>+Client: Click Submit
-    Note over Client: Validate Input
-
-    Client->>+API: POST /api/data
-    Note over Client,API: Authentication required
-
-    API->>+DB: Query Data
-    DB-->>-API: Return Results
+    User->>System: Submit Request
+    System->>DB: Query Data
+    DB-->>System: Return Data
 
     alt Success
-        API-->>Client: 200 OK
-        Client-->>User: Show Success
+        System-->>User: Show Result
     else Error
-        API-->>Client: 400 Error
-        Client-->>-User: Show Error
+        System-->>User: Show Error
     end
+```
 
-    deactivate Client
-````````````````````````
+MUST INCLUDE:
+- Participant definitions
+- Clear message flow
+- Proper arrow syntax (->> and -->>)
+- Alt/else blocks for conditionals
 
-CRITICAL RULES:
-- NO text before ```mermaid
-- NO rect rgb() blocks - use box or Note instead
-- Use simple participant names (no special chars)
-- Keep message labels SHORT
-- Use alt/else for conditionals
-- Use loop for iterations
-- Use opt for optional flows
-- End with deactivate if needed
-
-SAFE ALTERNATIVES:
-- Instead of rect rgb(), use: Note over A,B: Section Name
-- Or use: box LightBlue Section Name
-
-Code to analyze:
-````````````````````````%s
+Code (%s):
 %s
-````````````````````````
 
-Generate ONLY the mermaid diagram code block with proper syntax. NO rect blocks.]],
-    filetype, filetype, code_content)
+OUTPUT ONLY mermaid code with CORRECT arrows:]], filetype, filetype, code_content:sub(1, 2500))
 end
 
--- CLASS DIAGRAM PROMPT (FIXED)
+-- 3. CLASS DIAGRAM
 M.build_class_diagram_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid CLASS diagram.
+  return string.format([[Analyze this %s code and create a Mermaid class diagram.
 
-CRITICAL SYNTAX RULES - MUST FOLLOW EXACTLY:
-1. Start with ONLY: ```mermaid
-2. Second line MUST be: classDiagram
-3. Class definition format:
-   class ClassName {
+OUTPUT RULES:
+1. Start with: ```mermaid
+2. Second line: classDiagram
+3. Class format:
+   class Name {
        +type attribute
-       +returnType method()
+       +method()
    }
-4. Relationships MUST be on separate lines
-5. Apply styles at THE END
+4. Relationships on separate lines
+5. Apply styles at END
 6. End with: ```
 
-RELATIONSHIP SYMBOLS:
+RELATIONSHIPS:
 - Inheritance: Parent <|-- Child
 - Implementation: Interface <|.. Class
-- Composition: Whole *-- Part
-- Aggregation: Container o-- Item
 - Association: ClassA --> ClassB
-- Dependency: ClassA ..> ClassB
+- Composition: Whole *-- Part
 
-REQUIRED FORMAT:
-````````````````````````mermaid
+EXAMPLE:
+```mermaid
 classDiagram
     class User {
         +String id
         +String name
-        +String email
         +login() boolean
-        +logout() void
     }
 
     class Admin {
         +String role
-        +manageUsers() void
-    }
-
-    class Session {
-        +String token
-        +isValid() boolean
+        +manage() void
     }
 
     User <|-- Admin
-    User --> Session
 
     class User:::primary
     class Admin:::secondary
-    class Session:::interface
 
 %s
-````````````````````````
+```
 
-CRITICAL RULES:
-- NO text before ```mermaid
-- ONE class definition per block
-- Methods must have parentheses ()
-- Relationships on separate lines
-- Visibility: + public, - private, # protected
-- NO special characters in class names
-
-Code to analyze:
-````````````````````````%s
+Code (%s):
 %s
-````````````````````````
 
-Generate ONLY the mermaid diagram code block with proper syntax.]],
-    filetype, M.get_class_diagram_styles(), filetype, code_content)
+OUTPUT ONLY mermaid code:]], filetype, M.get_class_diagram_styles(), filetype, code_content:sub(1, 2500))
 end
 
--- STATE DIAGRAM PROMPT
+-- 4. STATE DIAGRAM
 M.build_state_diagram_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid STATE diagram.
+  return string.format([[Analyze this %s code and create a Mermaid state diagram.
 
-CRITICAL SYNTAX RULES - MUST FOLLOW EXACTLY:
-1. Start with ONLY: ```mermaid
-2. Second line MUST be: stateDiagram-v2
-3. State format: state "Display Name" as StateId
-4. Transitions: StateA --> StateB : Event
-5. Start: [*] --> FirstState
-6. End: LastState --> [*]
-7. End with: ```
+OUTPUT RULES:
+1. Start with: ```mermaid
+2. Second line: stateDiagram-v2
+3. Format: StateA --> StateB : Event
+4. Use [*] for start/end
+5. End with: ```
 
-REQUIRED FORMAT:
-````````````````````````mermaid
+EXAMPLE:
+```mermaid
 stateDiagram-v2
     [*] --> Idle
-
-    Idle --> Loading : User Submit
-    Loading --> Success : Data Loaded
-    Loading --> Error : Load Failed
-
-    Success --> Idle : Reset
+    Idle --> Loading : Submit
+    Loading --> Success : Loaded
+    Loading --> Error : Failed
+    Success --> [*]
     Error --> Idle : Retry
+```
 
-    Success --> Processing : Confirm
-    Processing --> Complete : Done
-    Complete --> [*]
-
-    state Loading {
-        [*] --> Fetching
-        Fetching --> Validating
-        Validating --> [*]
-    }
-````````````````````````
-
-CRITICAL RULES:
-- NO text before ```mermaid
-- Use state keyword for named states
-- Use [*] for start/end points
-- Keep transition labels SHORT
-- Nested states use braces {}
-
-Code to analyze:
-````````````````````````%s
+Code (%s):
 %s
-````````````````````````
 
-Generate ONLY the mermaid diagram code block with proper syntax.]],
-    filetype, filetype, code_content)
+OUTPUT ONLY mermaid code:]], filetype, filetype, code_content:sub(1, 2500))
 end
 
--- ER DIAGRAM PROMPT
+-- 5. ER DIAGRAM
 M.build_er_diagram_prompt = function(filetype, code_content)
   return string.format([[Analyze this %s code and create a Mermaid ER diagram.
 
-CRITICAL SYNTAX RULES - MUST FOLLOW EXACTLY:
-1. Start with ONLY: ```mermaid
-2. Second line MUST be: erDiagram
-3. Relationships first, then entity definitions
-4. Cardinality symbols: ||, |o, }o, }|
-5. Entity format: ENTITY_NAME { type attribute }
-6. End with: ```
+OUTPUT RULES:
+1. Start with: ```mermaid
+2. Second line: erDiagram
+3. Relationships first
+4. Entity definitions after
+5. End with: ```
 
 CARDINALITY:
-- || exactly one
-- |o zero or one
-- }o zero or more
-- }| one or more
+- || : exactly one
+- |o : zero or one
+- }o : zero or many
+- }| : one or many
 
-REQUIRED FORMAT:
-````````````````````````mermaid
+EXAMPLE:
+```mermaid
 erDiagram
     USER ||--o{ ORDER : places
-    ORDER ||--|{ LINE_ITEM : contains
-    PRODUCT ||--o{ LINE_ITEM : "ordered in"
+    ORDER ||--|{ ITEM : contains
 
     USER {
         int id PK
         string email UK
         string name
-        string password
-        datetime created_at
     }
 
     ORDER {
         int id PK
         int user_id FK
         decimal total
-        string status
-        datetime created_at
     }
+```
 
-    PRODUCT {
-        int id PK
-        string name
-        decimal price
-        int stock
-    }
-
-    LINE_ITEM {
-        int id PK
-        int order_id FK
-        int product_id FK
-        int quantity
-        decimal price
-    }
-````````````````````````
-
-CRITICAL RULES:
-- NO text before ```mermaid
-- Use UPPERCASE for entity names
-- Relationships BEFORE entity definitions
-- Use PK for primary key, FK for foreign key, UK for unique
-- NO quotes in attribute names
-
-Code to analyze:
-````````````````````````%s
+Code (%s):
 %s
-````````````````````````
 
-Generate ONLY the mermaid diagram code block with proper syntax.]],
-    filetype, filetype, code_content)
+OUTPUT ONLY mermaid code:]], filetype, filetype, code_content:sub(1, 2500))
 end
 
--- USER JOURNEY PROMPT
+-- ========================================
+-- UX & PROJECT DIAGRAMS
+-- ========================================
+
+-- 6. USER JOURNEY
 M.build_user_journey_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid USER JOURNEY diagram.
+  return string.format([[Create a Mermaid user journey from this %s code.
 
-CRITICAL SYNTAX RULES - MUST FOLLOW EXACTLY:
-1. Start with ONLY: ```mermaid
-2. Second line MUST be: journey
-3. Third line: title Your Title Here
-4. Section format: section Section Name
-5. Task format: Task Name: score: Actor1, Actor2
-6. Scores: 1-5 (1=bad, 5=excellent)
-7. End with: ```
-
-REQUIRED FORMAT:
-````````````````````````mermaid
+FORMAT:
+```mermaid
 journey
-    title Customer Purchase Journey
-    section Discovery
-      Browse Products: 5: Customer
-      View Details: 4: Customer
-      Read Reviews: 3: Customer
-    section Decision
-      Add to Cart: 4: Customer
-      Apply Coupon: 5: Customer
-    section Checkout
-      Enter Info: 3: Customer
-      Select Payment: 4: Customer
-      Complete Order: 5: Customer, System
-    section Post-Purchase
-      Receive Confirmation: 5: Customer
-      Track Shipment: 4: Customer
-````````````````````````
+    title User Flow
+    section Browse
+      View Products: 5: User
+    section Purchase
+      Add Cart: 4: User
+      Checkout: 5: User, System
+```
 
-CRITICAL RULES:
-- NO text before ```mermaid
-- Title on its own line
-- Sections group related tasks
-- Score must be 1-5
-- Multiple actors separated by comma
+Scores: 1-5 (1=bad, 5=excellent)
 
-Code to analyze:
-````````````````````````%s
-%s
-````````````````````````
+Code: %s
 
-Generate ONLY the mermaid diagram code block with proper syntax.]],
-    filetype, filetype, code_content)
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- GANTT PROMPT
+-- 7. GANTT
 M.build_gantt_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid GANTT diagram.
+  return string.format([[Create a Mermaid Gantt chart from this %s code.
 
-CRITICAL SYNTAX RULES - MUST FOLLOW EXACTLY:
-1. Start with ONLY: ```mermaid
-2. Second line MUST be: gantt
-3. Third line: title Your Title
-4. Fourth line: dateFormat YYYY-MM-DD
-5. Section format: section Section Name
-6. Task format: Task Name :status, id, start, duration
-7. Status: done, active, crit, milestone
-8. End with: ```
-
-REQUIRED FORMAT:
-````````````````````````mermaid
+FORMAT:
+```mermaid
 gantt
-    title Project Timeline
+    title Timeline
     dateFormat YYYY-MM-DD
-    section Planning
-    Requirements :done, req, 2024-01-01, 10d
-    Design :done, design, after req, 15d
-    section Development
-    Backend :active, backend, after design, 30d
-    Frontend :active, frontend, after design, 25d
-    section Testing
-    Unit Testing :testing, after backend, 10d
-    UAT :crit, after testing, 5d
-    section Deploy
-    Go Live :milestone, after testing, 1d
-````````````````````````
+    section Phase 1
+    Task A :done, t1, 2024-01-01, 10d
+    Task B :active, t2, after t1, 5d
+```
 
-CRITICAL RULES:
-- NO text before ```mermaid
-- dateFormat required
-- Use 'after taskId' for dependencies
-- milestone for important dates
-- crit for critical path
+Code: %s
 
-Code to analyze:
-````````````````````````%s
-%s
-````````````````````````
-
-Generate ONLY the mermaid diagram code block with proper syntax.]],
-    filetype, filetype, code_content)
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- PIE CHART PROMPT
-M.build_pie_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid PIE chart.
-
-CRITICAL SYNTAX RULES - MUST FOLLOW EXACTLY:
-1. Start with ONLY: ```mermaid
-2. Second line MUST be: pie title Your Title
-3. Data format: "Label" : value
-4. End with: ```
-
-REQUIRED FORMAT:
-````````````````````````mermaid
-pie title Technology Distribution
-    "React" : 35
-    "Vue" : 25
-    "Angular" : 20
-    "Svelte" : 12
-    "Others" : 8
-````````````````````````
-
-CRITICAL RULES:
-- NO text before ```mermaid
-- Title on same line as pie
-- Use quotes for labels
-- Values auto-convert to percentages
-
-Code to analyze:
-````````````````````````%s
-%s
-````````````````````````
-
-Generate ONLY the mermaid diagram code block.]],
-    filetype, filetype, code_content)
-end
-
--- QUADRANT CHART PROMPT
-M.build_quadrant_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid QUADRANT chart.
-
-CRITICAL SYNTAX RULES:
-1. Start with: ```mermaid
-2. Second line: quadrantChart
-3. Title, axes, quadrants, then points
-4. Point format: Item: [x, y]
-5. Values 0.0 to 1.0
-
-REQUIRED FORMAT:
-````````````````````````mermaid
-quadrantChart
-    title Priority Matrix
-    x-axis Low Effort --> High Effort
-    y-axis Low Impact --> High Impact
-    quadrant-1 Quick Wins
-    quadrant-2 Major Projects
-    quadrant-3 Fill Ins
-    quadrant-4 Thankless Tasks
-    Bug Fix: [0.2, 0.8]
-    New Feature: [0.7, 0.9]
-    Refactor: [0.6, 0.4]
-````````````````````````
-
-Code to analyze:
-````````````````````````%s
-%s
-```````````````````````]],
-    filetype, filetype, code_content)
-end
-
--- REQUIREMENT DIAGRAM PROMPT
-M.build_requirement_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid REQUIREMENT diagram.
-
-CRITICAL SYNTAX RULES:
-1. Start with: ```mermaid
-2. Second line: requirementDiagram
-3. Define requirements and elements
-4. Show relationships
-
-REQUIRED FORMAT:
-``````````````````````mermaid
-requirementDiagram
-    requirement AuthReq {
-        id: REQ-001
-        text: System shall authenticate users
-        risk: High
-        verifymethod: Test
-    }
-
-    element LoginModule {
-        type: Module
-        docref: DOC-001
-    }
-
-    AuthReq - satisfies -> LoginModule
-``````````````````````
-
-Code to analyze:
-``````````````````````%s
-%s
-`````````````````````]],
-    filetype, filetype, code_content)
-end
-
--- GITGRAPH PROMPT
-M.build_gitgraph_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid GITGRAPH.
-
-CRITICAL SYNTAX RULES:
-1. Start with: ```mermaid
-2. Second line: gitGraph
-3. Commands: commit, branch, checkout, merge
-4. Commit format: commit id: "message"
-
-REQUIRED FORMAT:
-````````````````````mermaid
-gitGraph
-    commit id: "Initial"
-    commit id: "Add base"
-    branch develop
-    checkout develop
-    commit id: "Add feature"
-    branch feature/login
-    checkout feature/login
-    commit id: "Implement"
-    checkout develop
-    merge feature/login
-    checkout main
-    merge develop tag: "v1.0"
-````````````````````
-
-Code to analyze:
-````````````````````%s
-%s
-```````````````````]],
-    filetype, filetype, code_content)
-end
-
--- MINDMAP PROMPT
-M.build_mindmap_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid MINDMAP.
-
-CRITICAL SYNTAX RULES:
-1. Start with: ```mermaid
-2. Second line: mindmap
-3. Root node at top
-4. Indentation for hierarchy
-5. Shapes: ((rounded)), [square], {{hexagon}}
-
-REQUIRED FORMAT:
-``````````````````mermaid
-mindmap
-  root((Architecture))
-    Frontend
-      React
-        Components
-        Hooks
-      Vue
-        Composition
-    Backend
-      Node.js
-        Express
-      Database
-        PostgreSQL
-        Redis
-``````````````````
-
-Code to analyze:
-``````````````````%s
-%s
-`````````````````]],
-    filetype, filetype, code_content)
-end
-
--- TIMELINE PROMPT
+-- 8. TIMELINE
 M.build_timeline_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid TIMELINE.
+  return string.format([[Create a Mermaid timeline from this %s code.
 
-CRITICAL SYNTAX RULES:
-1. Start with: ```mermaid
-2. Second line: timeline
-3. Third line: title Your Title
-4. Section and events
-
-REQUIRED FORMAT:
-````````````````mermaid
+FORMAT:
+```mermaid
 timeline
-    title Product Timeline
-    section 2023 Q1
+    title Events
+    section 2024 Q1
       Planning : Requirements
-      : Design
-    section 2023 Q2
-      Development : Backend
-      : Frontend
-    section 2023 Q3
-      Testing : QA
-    section 2023 Q4
-      Launch : Production
-````````````````
+    section 2024 Q2
+      Development : Features
+```
 
-Code to analyze:
-````````````````%s
-%s
-```````````````]],
-    filetype, filetype, code_content)
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- SANKEY PROMPT
-M.build_sankey_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid SANKEY diagram.
-
-CRITICAL SYNTAX RULES:
-1. Start with: ```mermaid
-2. Second line: sankey-beta
-3. Format: Source,Target,Value
-
-REQUIRED FORMAT:
-``````````````mermaid
-sankey-beta
-
-Website,Mobile,350
-Website,Desktop,250
-Mobile,Premium,120
-Mobile,Free,230
-Desktop,Premium,180
-``````````````
-
-Code to analyze:
-``````````````%s
-%s
-`````````````]],
-    filetype, filetype, code_content)
-end
-
--- XY CHART PROMPT
-M.build_xy_chart_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid XY CHART.
-
-CRITICAL SYNTAX RULES:
-1. Start with: ```mermaid
-2. Second line: xychart-beta
-3. Configure title, axes, data
-
-REQUIRED FORMAT:
-````````````mermaid
-xychart-beta
-    title "Sales 2024"
-    x-axis [Jan, Feb, Mar, Apr, May]
-    y-axis "Revenue" 0 --> 100000
-    line [45000, 52000, 48000, 65000, 72000]
-    bar [30000, 35000, 40000, 50000, 55000]
-````````````
-
-Code to analyze:
-````````````%s
-%s
-```````````]],
-    filetype, filetype, code_content)
-end
-
--- BLOCK DIAGRAM PROMPT
-M.build_block_diagram_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid BLOCK diagram.
-
-CRITICAL SYNTAX RULES:
-1. Start with: ```mermaid
-2. Second line: block-beta
-3. Define columns and blocks
-
-REQUIRED FORMAT:
-``````````mermaid
-block-beta
-    columns 3
-    Frontend:3
-    block:api:3
-        Auth
-        Rate
-        Log
-    end
-    block:services:3
-        User
-        Order
-        Payment
-    end
-    Database:3
-``````````
-
-Code to analyze:
-``````````%s
-%s
-`````````]],
-    filetype, filetype, code_content)
-end
-
--- PACKET PROMPT
-M.build_packet_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid PACKET diagram.
-
-CRITICAL SYNTAX RULES:
-1. Start with: ```mermaid
-2. Second line: packet-beta
-3. Title and bit ranges
-
-REQUIRED FORMAT:
-````````mermaid
-packet-beta
-    title "TCP Header"
-    0-15: "Source Port"
-    16-31: "Dest Port"
-    32-63: "Sequence"
-    64-95: "Acknowledgment"
-````````
-
-Code to analyze:
-````````%s
-%s
-```````]],
-    filetype, filetype, code_content)
-end
-
--- KANBAN PROMPT
+-- 9. KANBAN
 M.build_kanban_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid KANBAN.
+  return string.format([[Create a Mermaid Kanban from this %s code.
 
-CRITICAL SYNTAX RULES:
-1. Start with: ```mermaid
-2. Second line: kanban
-3. Column names and tasks
-
-REQUIRED FORMAT:
-``````mermaid
+FORMAT:
+```mermaid
 kanban
   Todo
-    [Design Schema]
-    [API Endpoints]
+    [Task 1]
   In Progress
-    [Auth System]
+    [Task 2]
   Done
-    [Setup Project]
-``````
+    [Task 3]
+```
 
-Code to analyze:
-``````%s
-%s
-`````]],
-    filetype, filetype, code_content)
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- ARCHITECTURE PROMPT
+-- ========================================
+-- DATA VISUALIZATION DIAGRAMS
+-- ========================================
+
+-- 10. PIE CHART
+M.build_pie_prompt = function(filetype, code_content)
+  return string.format([[Create a Mermaid pie chart from this %s code.
+
+FORMAT:
+```mermaid
+pie title Distribution
+    "Category A" : 45
+    "Category B" : 30
+    "Category C" : 25
+```
+
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+end
+
+-- 11. QUADRANT CHART
+M.build_quadrant_prompt = function(filetype, code_content)
+  return string.format([[Create a Mermaid quadrant chart from this %s code.
+
+FORMAT:
+```mermaid
+quadrantChart
+    title Priority Matrix
+    x-axis Low --> High
+    y-axis Low --> High
+    quadrant-1 Quick Wins
+    quadrant-2 Major
+    quadrant-3 Fill
+    quadrant-4 Avoid
+    Item A: [0.3, 0.8]
+```
+
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+end
+
+-- 12. XY CHART
+M.build_xy_chart_prompt = function(filetype, code_content)
+  return string.format([[Create a Mermaid XY chart from this %s code.
+
+FORMAT:
+```mermaid
+xychart-beta
+    title "Metrics"
+    x-axis [Q1, Q2, Q3, Q4]
+    y-axis "Value" 0 --> 100
+    line [20, 45, 60, 80]
+```
+
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+end
+
+-- 13. SANKEY
+M.build_sankey_prompt = function(filetype, code_content)
+  return string.format([[Create a Mermaid Sankey diagram from this %s code.
+
+FORMAT:
+```mermaid
+sankey-beta
+
+Source,Target,Value
+A,B,10
+B,C,5
+```
+
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+end
+
+-- ========================================
+-- DEVELOPMENT DIAGRAMS
+-- ========================================
+
+-- 14. GITGRAPH
+M.build_gitgraph_prompt = function(filetype, code_content)
+  return string.format([[Create a Mermaid git graph from this %s code.
+
+FORMAT:
+```mermaid
+gitGraph
+    commit id: "Init"
+    branch develop
+    checkout develop
+    commit id: "Feature"
+    checkout main
+    merge develop
+```
+
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+end
+
+-- 15. ARCHITECTURE (C4)
 M.build_architecture_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid C4 ARCHITECTURE.
+  return string.format([[Create a Mermaid C4 diagram from this %s code.
 
-CRITICAL SYNTAX RULES:
-1. Start with: ```mermaid
-2. Second line: C4Context
-3. Define people, systems, relationships
-
-REQUIRED FORMAT:
-````mermaid
+FORMAT:
+```mermaid
 C4Context
     title System Context
-    Person(user, "User", "Customer")
-    System(app, "App", "Main system")
-    System_Ext(payment, "Payment", "External")
+    Person(user, "User")
+    System(app, "App")
     Rel(user, app, "Uses")
-    Rel(app, payment, "Processes")
-````
+```
 
-Code to analyze:
-````%s
-%s
-```]],
-    filetype, filetype, code_content)
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+end
+
+-- 16. BLOCK DIAGRAM
+M.build_block_diagram_prompt = function(filetype, code_content)
+  return string.format([[Create a Mermaid block diagram from this %s code.
+
+FORMAT:
+```mermaid
+block-beta
+    columns 3
+    Frontend
+    Backend
+    Database
+```
+
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+end
+
+-- 17. PACKET
+M.build_packet_prompt = function(filetype, code_content)
+  return string.format([[Create a Mermaid packet diagram from this %s code.
+
+FORMAT:
+```mermaid
+packet-beta
+    title "Header"
+    0-15: "Field A"
+    16-31: "Field B"
+```
+
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+end
+
+-- ========================================
+-- PLANNING DIAGRAMS
+-- ========================================
+
+-- 18. REQUIREMENT
+M.build_requirement_prompt = function(filetype, code_content)
+  return string.format([[Create a Mermaid requirement diagram from this %s code.
+
+FORMAT:
+```mermaid
+requirementDiagram
+    requirement Req1 {
+        id: R1
+        text: Description
+        risk: High
+    }
+    element Module {
+        type: Component
+    }
+    Req1 - satisfies -> Module
+```
+
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+end
+
+-- 19. MINDMAP
+M.build_mindmap_prompt = function(filetype, code_content)
+  return string.format([[Create a Mermaid mindmap from this %s code.
+
+FORMAT:
+```mermaid
+mindmap
+  root((Core))
+    Topic A
+      Sub A1
+      Sub A2
+    Topic B
+      Sub B1
+```
+
+Code: %s
+
+OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
 return M
