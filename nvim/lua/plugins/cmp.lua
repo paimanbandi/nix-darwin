@@ -31,7 +31,7 @@ return {
       formatting = {
         fields = { "abbr", "kind", "menu" },
         format = function(entry, vim_item)
-          local max_width = 60
+          local max_width = 100
           if #vim_item.abbr > max_width then
             vim_item.abbr = vim_item.abbr:sub(1, max_width - 3) .. "..."
           end
