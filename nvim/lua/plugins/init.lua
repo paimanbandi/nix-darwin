@@ -29,7 +29,6 @@ return require("lazy").setup({
   require("plugins.markdown-export"),
   require("plugins.markdown-ai"),
   require("plugins.smear-cursor"),
-  -- require("plugins.rust"),
   require("plugins.aerial"),
   require("plugins.blamer"),
   require("plugins.grug-far"),
