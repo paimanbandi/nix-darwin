@@ -31,10 +31,16 @@ return {
       formatting = {
         fields = { "abbr", "kind", "menu" },
         format = function(entry, vim_item)
-          local max_width = 200
-          if #vim_item.abbr > max_width then
-            vim_item.abbr = vim_item.abbr:sub(1, max_width - 3) .. "..."
+          local target_width = 180
+
+          local label = vim_item.abbr
+          local label_width = vim.fn.strdisplaywidth(label)
+
+          if label_width < target_width then
+            vim_item.abbr = label .. string.rep(" ", target_width - label_width)
           end
+
+          vim_item.menu = "[LSP]"
           return vim_item
         end,
       },
