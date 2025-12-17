@@ -174,8 +174,7 @@
             }))
 
             # Coding Assistant
-            claude-codCoding
-            Assistant
+            claude-code
 
             # LLM
             opencode
