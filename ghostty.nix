@@ -24,9 +24,11 @@
 
     command = ${pkgs.zsh}/bin/zsh
 
-    # Mouse & scroll settings
-    mouse-scroll-multiplier = 1
-    shell-integration = true
-    shell-integration-features = cursor,sudo,title
+    # Mouse & scroll settings - INI YANG PENTING
+    mouse-scroll-multiplier = 3
+
+    # Matikan shell integration di tmux (ini yang bikin conflict!)
+    shell-integration = detect
+    shell-integration-features = no-cursor,sudo,title
   '';
 }
