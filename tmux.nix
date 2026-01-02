@@ -9,7 +9,7 @@
     prefix = "C-b";
 
     # Enable mouse support but make scrolling work properly
-    mouse = true;
+    mouse = false;
 
     # Terminal settings
     terminal = "screen-256color";
@@ -19,9 +19,6 @@
 
     # Additional config
     extraConfig = ''
-      # Mouse mode fixes untuk scroll
-      bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
-      bind -n WheelDownPane select-pane -t= \; send-keys -M
 
       # Visual improvements
       set -g status-style bg=default
