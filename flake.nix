@@ -182,6 +182,8 @@
 
             coreutils # includes timeout command
 
+            bat
+
           ];
 
           nix.settings.experimental-features = [
