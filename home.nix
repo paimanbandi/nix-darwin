@@ -1,4 +1,5 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, ... }:
+{
   home.username = "paiman";
   home.homeDirectory = "/Users/paiman";
 
@@ -7,6 +8,7 @@
     ./starship.nix
     ./ghostty.nix
     ./warp.nix
+    ./tmux.nix
   ];
 
   home.packages = with pkgs; [
@@ -18,4 +20,3 @@
 
   home.stateVersion = "24.05";
 }
-
