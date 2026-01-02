@@ -23,5 +23,10 @@
     palette = 15=#ffffff
 
     command = ${pkgs.zsh}/bin/zsh
+
+    # Mouse & scroll settings
+    mouse-scroll-multiplier = 1
+    shell-integration = true
+    shell-integration-features = cursor,sudo,title
   '';
 }
