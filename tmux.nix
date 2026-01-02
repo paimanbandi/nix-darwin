@@ -1,53 +1,53 @@
-# tmux.nix
 { config, pkgs, ... }:
 
 {
   programs.tmux = {
     enable = true;
-
-    # Prefix key (default Ctrl+b)
     prefix = "C-b";
 
-    # Enable mouse support but make scrolling work properly
-    mouse = false;
+    # Mouse ON tapi dengan proper config
+    mouse = true;
 
-    # Terminal settings
     terminal = "screen-256color";
     baseIndex = 1;
     escapeTime = 0;
-    historyLimit = 10000;
+    historyLimit = 50000;
 
-    # Additional config
     extraConfig = ''
+      # Fix scroll di Ghostty - CRITICAL!
+      set -g mouse on
 
-      # Visual improvements
-      set -g status-style bg=default
-      set -g status-left-length 90
-      set -g status-right-length 90
+      # Scroll tanpa masuk copy mode otomatis
+      bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; send-keys -M'"
+      bind -n WheelDownPane select-pane -t= \; send-keys -M
 
-      # Pane border colors
-      set -g pane-border-style fg=colour240
-      set -g pane-active-border-style fg=colour75
+      # Alternative scroll (uncomment kalau yang atas ga work):
+      # unbind -T root WheelUpPane
+      # unbind -T root WheelDownPane
+      # bind -T root WheelUpPane   if-shell -F -t = "#{alternate_on}" "send-keys -M" "select-pane -t =; copy-mode -e; send-keys -M"
+      # bind -T root WheelDownPane if-shell -F -t = "#{alternate_on}" "send-keys -M" "select-pane -t =; send-keys -M"
 
-      # Copy mode vi keys
+      # Vi mode
       setw -g mode-keys vi
       bind -T copy-mode-vi v send -X begin-selection
-      bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "pbcopy"
+      bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "wl-copy"
 
-      # Split panes with | and -
+      # Split panes
       bind | split-window -h -c "#{pane_current_path}"
       bind - split-window -v -c "#{pane_current_path}"
 
-      # Reload config
-      bind r source-file ~/.config/tmux/tmux.conf \; display "Config reloaded!"
+      # Reload
+      bind r source-file ~/.config/tmux/tmux.conf \; display "Reloaded!"
+
+      # Colors
+      set -g status-style bg=default
+      set -g pane-border-style fg=colour240
+      set -g pane-active-border-style fg=colour75
     '';
 
-    # Plugins (optional)
     plugins = with pkgs.tmuxPlugins; [
       sensible
       yank
-      # resurrect  # Session persistence
-      # continuum  # Auto-save sessions
     ];
   };
 }
