@@ -84,9 +84,19 @@
             cocoapods
 
             ## Rust
-            (pkgs.rust-bin.stable.latest.complete)
+            (pkgs.rust-bin.stable.latest.complete.override {
+              targets = [ "wasm32-unknown-unknown" ];
+            })
             pkgs.rust-analyzer
             cargo-watch
+            cargo-generate
+            trunk
+            wasm-bindgen-cli
+
+            # Dioxus system deps (macOS)
+            darwin.apple_sdk.frameworks.WebKit
+            darwin.apple_sdk.frameworks.CoreServices
+            darwin.apple_sdk.frameworks.Security
 
             ## Go
             go
