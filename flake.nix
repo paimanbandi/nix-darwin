@@ -116,6 +116,7 @@
 
             ## C#
             dotnet-sdk_10
+            csharpier
 
             ## Swift
             swift-format

@@ -23,6 +23,9 @@ return {
         nixfmt = {
           command = "/run/current-system/sw/bin/nixfmt",
         },
+        csharpier = {
+          command = "/run/current-system/sw/bin/csharpier",
+        },
       },
       formatters_by_ft = {
         lua = { "stylua" },
@@ -41,6 +44,7 @@ return {
         dockerfile = { "lsp" },
         swift = { "swift_format" },
         nix = { "nixfmt" },
+        cs = { "csharpier" },
       },
       format_on_save = function(bufnr)
         local ignore_filetypes = { "sql" }
