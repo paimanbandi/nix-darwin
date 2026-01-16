@@ -114,6 +114,9 @@
             ## Java
             zulu8
 
+            ## C#
+            dotnet-sdk_10
+
             ## Swift
             swift-format
 
