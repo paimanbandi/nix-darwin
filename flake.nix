@@ -117,6 +117,7 @@
             ## C#
             dotnet-sdk_10
             csharpier
+            roslyn-ls
 
             ## Swift
             swift-format

@@ -10,6 +10,8 @@ return {
 
     local lspconfig = require("lspconfig")
 
+    local capabilities = require('cmp_nvim_lsp').default_capabilities()
+
     local function on_attach(client, bufnr)
       vim.notify("LSP attached to buffer " .. bufnr)
       local opts = { buffer = bufnr, noremap = true, silent = true }
@@ -34,12 +36,14 @@ return {
         function(server_name)
           lspconfig[server_name].setup({
             on_attach = on_attach,
+            capabilities = capabilities,
           })
         end,
 
         ["rust_analyzer"] = function()
           lspconfig.rust_analyzer.setup({
             on_attach = on_attach,
+            capabilities = capabilities,
             settings = {
               ["rust-analyzer"] = {
                 files = {
@@ -58,6 +62,7 @@ return {
         ["lua_ls"] = function()
           lspconfig.lua_ls.setup({
             on_attach = on_attach,
+            capabilities = capabilities,
             settings = {
               Lua = {
                 runtime = {
@@ -81,6 +86,7 @@ return {
         ["ts_ls"] = function()
           lspconfig.ts_ls.setup({
             on_attach = on_attach,
+            capabilities = capabilities,
             init_options = {
               preferences = {
                 importModuleSpecifierPreference = "relative",
@@ -92,6 +98,7 @@ return {
         ["emmet_ls"] = function()
           lspconfig.emmet_ls.setup({
             on_attach = on_attach,
+            capabilities = capabilities,
             filetypes = {
               "css", "eruby", "html", "javascript", "javascriptreact",
               "less", "sass", "scss", "svelte", "pug", "typescriptreact", "vue"
@@ -109,6 +116,7 @@ return {
         ["tailwindcss"] = function()
           lspconfig.tailwindcss.setup({
             on_attach = on_attach,
+            capabilities = capabilities,
             filetypes = {
               "html", "css", "scss", "javascript", "javascriptreact",
               "typescript", "typescriptreact", "svelte", "vue"
@@ -118,6 +126,7 @@ return {
         ["gopls"] = function()
           lspconfig.gopls.setup({
             on_attach = on_attach,
+            capabilities = capabilities,
             settings = {
               gopls = {
                 gofumpt = true,
@@ -131,6 +140,22 @@ return {
           })
         end,
       }
+    })
+
+    lspconfig.roslyn.setup({
+      on_attach = on_attach,
+      capabilities = capabilities,
+      cmd = { "Microsoft.CodeAnalysis.LanguageServer" },
+      filetypes = { "cs", "vb" },
+      root_dir = lspconfig.util.root_pattern("*.sln", "*.csproj", ".git"),
+      init_options = {
+        ["language"] = "csharp",
+      },
+      settings = {
+        ["csharp|code_style"] = {
+          ["namespace_declarations"] = "file_scoped",
+        },
+      },
     })
 
     vim.diagnostic.config({

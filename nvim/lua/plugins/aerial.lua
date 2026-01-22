@@ -1,5 +1,6 @@
 return {
   "stevearc/aerial.nvim",
+  event = "LspAttach",
   opts = {
     backends = { "lsp", "treesitter", "markdown", "man" },
     attach_mode = "window",

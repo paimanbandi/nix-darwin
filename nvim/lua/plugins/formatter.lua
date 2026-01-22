@@ -25,6 +25,8 @@ return {
         },
         csharpier = {
           command = "/run/current-system/sw/bin/csharpier",
+          args = { "format", "$FILENAME" },
+          stdin = false,
         },
       },
       formatters_by_ft = {
