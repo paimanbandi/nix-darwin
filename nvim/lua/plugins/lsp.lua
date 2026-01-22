@@ -142,20 +142,15 @@ return {
       }
     })
 
-    lspconfig.roslyn.setup({
+    lspconfig.omnisharp.setup({
       on_attach = on_attach,
       capabilities = capabilities,
-      cmd = { "Microsoft.CodeAnalysis.LanguageServer" },
-      filetypes = { "cs", "vb" },
+      cmd = { "omnisharp", "--languageserver", "--hostPID", tostring(vim.fn.getpid()) },
+      filetypes = { "cs" },
       root_dir = lspconfig.util.root_pattern("*.sln", "*.csproj", ".git"),
-      init_options = {
-        ["language"] = "csharp",
-      },
-      settings = {
-        ["csharp|code_style"] = {
-          ["namespace_declarations"] = "file_scoped",
-        },
-      },
+      enable_roslyn_analyzers = true,
+      organize_imports_on_format = true,
+      enable_import_completion = true,
     })
 
     vim.diagnostic.config({

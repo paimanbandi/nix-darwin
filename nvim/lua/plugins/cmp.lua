@@ -2,7 +2,10 @@ return {
   "hrsh7th/nvim-cmp",
   dependencies = {
     "hrsh7th/cmp-nvim-lsp",
+    "hrsh7th/cmp-buffer",
+    "hrsh7th/cmp-path",
     "L3MON4D3/LuaSnip",
+    "saadparwaiz1/cmp_luasnip",
   },
   config = function()
     local cmp_autopairs = require("nvim-autopairs.completion.cmp")
@@ -15,6 +18,14 @@ return {
         expand = function(args)
           require("luasnip").lsp_expand(args.body)
         end,
+      },
+
+      completion = {
+        autocomplete = {
+          require('cmp.types').cmp.TriggerEvent.TextChanged,
+        },
+        completeopt = 'menu,menuone,noselect',
+        keyword_length = 1,
       },
 
       window = {
@@ -40,7 +51,13 @@ return {
             vim_item.abbr = label .. string.rep(" ", target_width - label_width)
           end
 
-          vim_item.menu = "[LSP]"
+          vim_item.menu = ({
+            nvim_lsp = '[LSP]',
+            luasnip = '[Snippet]',
+            buffer = '[Buffer]',
+            path = '[Path]',
+          })[entry.source.name]
+
           return vim_item
         end,
       },
@@ -55,11 +72,37 @@ return {
       mapping = cmp.mapping.preset.insert({
         ["<C-Space>"] = cmp.mapping.complete(),
         ["<CR>"] = cmp.mapping.confirm({ select = true }),
+        ["<Tab>"] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.select_next_item()
+          else
+            fallback()
+          end
+        end, { "i", "s" }),
+        ["<S-Tab>"] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.select_prev_item()
+          else
+            fallback()
+          end
+        end, { "i", "s" }),
+        ["<C-d>"] = cmp.mapping.scroll_docs(-4),
+        ["<C-f>"] = cmp.mapping.scroll_docs(4),
+        ["<C-e>"] = cmp.mapping.abort(),
       }),
 
       sources = cmp.config.sources({
-        { name = "nvim_lsp" },
+        { name = "nvim_lsp", priority = 1000 },
+        { name = "luasnip",  priority = 750 },
+      }, {
+        { name = "buffer", priority = 500 },
+        { name = "path",   priority = 250 },
       }),
+      performance = {
+        debounce = 60,
+        throttle = 30,
+        fetching_timeout = 500,
+      },
     })
   end,
 }
