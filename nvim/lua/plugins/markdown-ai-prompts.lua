@@ -4,7 +4,7 @@
 local M = {}
 
 -- ========================================
--- COLOR PALETTE
+-- 🎨 COLOR PALETTE
 -- ========================================
 M.colors = {
   primary = "#1e40af",
@@ -24,7 +24,7 @@ M.colors = {
 }
 
 -- ========================================
--- STYLE DEFINITIONS
+-- 🎯 STYLE DEFINITIONS
 -- ========================================
 
 M.get_flowchart_styles = function()
@@ -54,23 +54,24 @@ M.get_class_diagram_styles = function()
 end
 
 -- ========================================
--- CORE DIAGRAMS (Top 5 most used)
+-- 🚀 CORE DIAGRAMS (Top 5 most used)
 -- ========================================
 
--- 1. FLOWCHART
+-- 1️⃣ FLOWCHART
 M.build_flowchart_prompt = function(filetype, code_content, complexity)
   local max_nodes = complexity == "simple" and 30 or (complexity == "moderate" and 50 or 80)
 
-  return string.format([[Analyze this %s code and create a Mermaid flowchart.
+  return string.format([[🔍 Analyze this %s code and create a Mermaid flowchart.
 
-OUTPUT RULES:
-1. Start with: ```mermaid
-2. Second line: flowchart TD
-3. Format: NodeID[Label]:::class --> NextID[Label]:::class
-4. Apply styles at END
-5. End with: ```
+📋 OUTPUT RULES:
+1. ✅ Start with: ```mermaid
+2. ✅ Second line: flowchart TD
+3. ✅ Format: NodeID[Label]:::class --> NextID[Label]:::class
+4. ⚠️ CRITICAL: NO EMOJI in node labels (ASCII only)
+5. ✅ Apply styles at END
+6. ✅ End with: ```
 
-EXAMPLE:
+💡 EXAMPLE (correct format):
 ```mermaid
 flowchart TD
     Start([Begin]):::startEnd
@@ -85,36 +86,40 @@ flowchart TD
 %s
 ```
 
-Max nodes: %d
-Keep labels SHORT (max 25 chars)
-NO quotes in labels
+⚙️ CONSTRAINTS:
+- Max nodes: %d
+- Keep labels SHORT (max 25 chars)
+- NO quotes in labels
+- NO special characters (emoji, unicode)
+- Use ASCII only
 
-Code (%s):
+📝 Code (%s):
 %s
 
-OUTPUT ONLY mermaid code:]], filetype, M.get_flowchart_styles(), max_nodes, filetype, code_content:sub(1, 2500))
+🎯 OUTPUT ONLY mermaid code:]], filetype, M.get_flowchart_styles(), max_nodes, filetype, code_content:sub(1, 2500))
 end
 
--- 2. SEQUENCE DIAGRAM
+-- 2️⃣ SEQUENCE DIAGRAM
 M.build_sequence_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid sequence diagram.
+  return string.format([[🔍 Analyze this %s code and create a Mermaid sequence diagram.
 
-CRITICAL: Generate COMPLETE diagram with ALL interactions!
+🚨 CRITICAL: Generate COMPLETE diagram with ALL interactions!
 
-ARROW RULES (CRITICAL):
-- Use ->> for calls (single dash)
-- Use -->> for returns (double dash)
-- NEVER use 3+ dashes (--->> is INVALID)
+⚡ ARROW RULES (CRITICAL):
+- ✅ Use ->> for calls (single dash)
+- ✅ Use -->> for returns (double dash)
+- ❌ NEVER use 3+ dashes (--->> is INVALID)
 
-OUTPUT RULES:
-1. Start with: ```mermaid
-2. Second line: sequenceDiagram
-3. Define participants
-4. Show ALL interactions
-5. Use alt/else for conditionals
-6. End with: ```
+📋 OUTPUT RULES:
+1. ✅ Start with: ```mermaid
+2. ✅ Second line: sequenceDiagram
+3. ✅ Define participants
+4. ✅ Show ALL interactions
+5. ✅ Use alt/else for conditionals
+6. ⚠️ NO EMOJI in participant names or messages
+7. ✅ End with: ```
 
-EXAMPLE:
+💡 EXAMPLE:
 ```mermaid
 sequenceDiagram
     autonumber
@@ -133,41 +138,43 @@ sequenceDiagram
     end
 ```
 
-MUST INCLUDE:
+✅ MUST INCLUDE:
 - Participant definitions
 - Clear message flow
 - Proper arrow syntax (->> and -->>)
 - Alt/else blocks for conditionals
+- NO special characters
 
-Code (%s):
+📝 Code (%s):
 %s
 
-OUTPUT ONLY mermaid code with CORRECT arrows:]], filetype, filetype, code_content:sub(1, 2500))
+🎯 OUTPUT ONLY mermaid code with CORRECT arrows:]], filetype, filetype, code_content:sub(1, 2500))
 end
 
--- 3. CLASS DIAGRAM
+-- 3️⃣ CLASS DIAGRAM
 M.build_class_diagram_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid class diagram.
+  return string.format([[🔍 Analyze this %s code and create a Mermaid class diagram.
 
-OUTPUT RULES:
-1. Start with: ```mermaid
-2. Second line: classDiagram
-3. Class format:
+📋 OUTPUT RULES:
+1. ✅ Start with: ```mermaid
+2. ✅ Second line: classDiagram
+3. ✅ Class format:
    class Name {
        +type attribute
        +method()
    }
-4. Relationships on separate lines
-5. Apply styles at END
-6. End with: ```
+4. ✅ Relationships on separate lines
+5. ⚠️ NO EMOJI in class names or methods
+6. ✅ Apply styles at END
+7. ✅ End with: ```
 
-RELATIONSHIPS:
+🔗 RELATIONSHIPS:
 - Inheritance: Parent <|-- Child
 - Implementation: Interface <|.. Class
 - Association: ClassA --> ClassB
 - Composition: Whole *-- Part
 
-EXAMPLE:
+💡 EXAMPLE:
 ```mermaid
 classDiagram
     class User {
@@ -189,24 +196,25 @@ classDiagram
 %s
 ```
 
-Code (%s):
+📝 Code (%s):
 %s
 
-OUTPUT ONLY mermaid code:]], filetype, M.get_class_diagram_styles(), filetype, code_content:sub(1, 2500))
+🎯 OUTPUT ONLY mermaid code:]], filetype, M.get_class_diagram_styles(), filetype, code_content:sub(1, 2500))
 end
 
--- 4. STATE DIAGRAM
+-- 4️⃣ STATE DIAGRAM
 M.build_state_diagram_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid state diagram.
+  return string.format([[🔍 Analyze this %s code and create a Mermaid state diagram.
 
-OUTPUT RULES:
-1. Start with: ```mermaid
-2. Second line: stateDiagram-v2
-3. Format: StateA --> StateB : Event
-4. Use [*] for start/end
-5. End with: ```
+📋 OUTPUT RULES:
+1. ✅ Start with: ```mermaid
+2. ✅ Second line: stateDiagram-v2
+3. ✅ Format: StateA --> StateB : Event
+4. ✅ Use [*] for start/end
+5. ⚠️ NO EMOJI in state names or transitions
+6. ✅ End with: ```
 
-EXAMPLE:
+💡 EXAMPLE:
 ```mermaid
 stateDiagram-v2
     [*] --> Idle
@@ -217,30 +225,31 @@ stateDiagram-v2
     Error --> Idle : Retry
 ```
 
-Code (%s):
+📝 Code (%s):
 %s
 
-OUTPUT ONLY mermaid code:]], filetype, filetype, code_content:sub(1, 2500))
+🎯 OUTPUT ONLY mermaid code:]], filetype, filetype, code_content:sub(1, 2500))
 end
 
--- 5. ER DIAGRAM
+-- 5️⃣ ER DIAGRAM
 M.build_er_diagram_prompt = function(filetype, code_content)
-  return string.format([[Analyze this %s code and create a Mermaid ER diagram.
+  return string.format([[🔍 Analyze this %s code and create a Mermaid ER diagram.
 
-OUTPUT RULES:
-1. Start with: ```mermaid
-2. Second line: erDiagram
-3. Relationships first
-4. Entity definitions after
-5. End with: ```
+📋 OUTPUT RULES:
+1. ✅ Start with: ```mermaid
+2. ✅ Second line: erDiagram
+3. ✅ Relationships first
+4. ✅ Entity definitions after
+5. ⚠️ NO EMOJI in entity names or attributes
+6. ✅ End with: ```
 
-CARDINALITY:
+🔗 CARDINALITY:
 - || : exactly one
 - |o : zero or one
 - }o : zero or many
 - }| : one or many
 
-EXAMPLE:
+💡 EXAMPLE:
 ```mermaid
 erDiagram
     USER ||--o{ ORDER : places
@@ -259,21 +268,21 @@ erDiagram
     }
 ```
 
-Code (%s):
+📝 Code (%s):
 %s
 
-OUTPUT ONLY mermaid code:]], filetype, filetype, code_content:sub(1, 2500))
+🎯 OUTPUT ONLY mermaid code:]], filetype, filetype, code_content:sub(1, 2500))
 end
 
 -- ========================================
--- UX & PROJECT DIAGRAMS
+-- 🎨 UX & PROJECT DIAGRAMS
 -- ========================================
 
--- 6. USER JOURNEY
+-- 6️⃣ USER JOURNEY
 M.build_user_journey_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid user journey from this %s code.
+  return string.format([[🔍 Create a Mermaid user journey from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 journey
     title User Flow
@@ -284,18 +293,19 @@ journey
       Checkout: 5: User, System
 ```
 
-Scores: 1-5 (1=bad, 5=excellent)
+⭐ Scores: 1-5 (1=bad, 5=excellent)
+⚠️ NO EMOJI in section or task names
 
-Code: %s
+📝 Code: %s
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- 7. GANTT
+-- 7️⃣ GANTT
 M.build_gantt_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid Gantt chart from this %s code.
+  return string.format([[🔍 Create a Mermaid Gantt chart from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 gantt
     title Timeline
@@ -305,16 +315,18 @@ gantt
     Task B :active, t2, after t1, 5d
 ```
 
-Code: %s
+⚠️ NO EMOJI in task names
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- 8. TIMELINE
+-- 8️⃣ TIMELINE
 M.build_timeline_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid timeline from this %s code.
+  return string.format([[🔍 Create a Mermaid timeline from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 timeline
     title Events
@@ -324,16 +336,18 @@ timeline
       Development : Features
 ```
 
-Code: %s
+⚠️ NO EMOJI in event names
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- 9. KANBAN
+-- 9️⃣ KANBAN
 M.build_kanban_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid Kanban from this %s code.
+  return string.format([[🔍 Create a Mermaid Kanban from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 kanban
   Todo
@@ -344,20 +358,22 @@ kanban
     [Task 3]
 ```
 
-Code: %s
+⚠️ NO EMOJI in task names
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
 -- ========================================
--- DATA VISUALIZATION DIAGRAMS
+-- 📊 DATA VISUALIZATION DIAGRAMS
 -- ========================================
 
--- 10. PIE CHART
+-- 🔟 PIE CHART
 M.build_pie_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid pie chart from this %s code.
+  return string.format([[🔍 Create a Mermaid pie chart from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 pie title Distribution
     "Category A" : 45
@@ -365,16 +381,18 @@ pie title Distribution
     "Category C" : 25
 ```
 
-Code: %s
+⚠️ NO EMOJI in category names
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- 11. QUADRANT CHART
+-- 1️⃣1️⃣ QUADRANT CHART
 M.build_quadrant_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid quadrant chart from this %s code.
+  return string.format([[🔍 Create a Mermaid quadrant chart from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 quadrantChart
     title Priority Matrix
@@ -387,16 +405,18 @@ quadrantChart
     Item A: [0.3, 0.8]
 ```
 
-Code: %s
+⚠️ NO EMOJI in item names
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- 12. XY CHART
+-- 1️⃣2️⃣ XY CHART
 M.build_xy_chart_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid XY chart from this %s code.
+  return string.format([[🔍 Create a Mermaid XY chart from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 xychart-beta
     title "Metrics"
@@ -405,16 +425,18 @@ xychart-beta
     line [20, 45, 60, 80]
 ```
 
-Code: %s
+⚠️ NO EMOJI in labels
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- 13. SANKEY
+-- 1️⃣3️⃣ SANKEY
 M.build_sankey_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid Sankey diagram from this %s code.
+  return string.format([[🔍 Create a Mermaid Sankey diagram from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 sankey-beta
 
@@ -423,20 +445,22 @@ A,B,10
 B,C,5
 ```
 
-Code: %s
+⚠️ NO EMOJI in node names
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
 -- ========================================
--- DEVELOPMENT DIAGRAMS
+-- 💻 DEVELOPMENT DIAGRAMS
 -- ========================================
 
--- 14. GITGRAPH
+-- 1️⃣4️⃣ GITGRAPH
 M.build_gitgraph_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid git graph from this %s code.
+  return string.format([[🔍 Create a Mermaid git graph from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 gitGraph
     commit id: "Init"
@@ -447,16 +471,18 @@ gitGraph
     merge develop
 ```
 
-Code: %s
+⚠️ NO EMOJI in commit messages
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- 15. ARCHITECTURE (C4)
+-- 1️⃣5️⃣ ARCHITECTURE (C4)
 M.build_architecture_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid C4 diagram from this %s code.
+  return string.format([[🔍 Create a Mermaid C4 diagram from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 C4Context
     title System Context
@@ -465,16 +491,18 @@ C4Context
     Rel(user, app, "Uses")
 ```
 
-Code: %s
+⚠️ NO EMOJI in component names
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- 16. BLOCK DIAGRAM
+-- 1️⃣6️⃣ BLOCK DIAGRAM
 M.build_block_diagram_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid block diagram from this %s code.
+  return string.format([[🔍 Create a Mermaid block diagram from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 block-beta
     columns 3
@@ -483,16 +511,18 @@ block-beta
     Database
 ```
 
-Code: %s
+⚠️ NO EMOJI in block names
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- 17. PACKET
+-- 1️⃣7️⃣ PACKET
 M.build_packet_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid packet diagram from this %s code.
+  return string.format([[🔍 Create a Mermaid packet diagram from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 packet-beta
     title "Header"
@@ -500,20 +530,22 @@ packet-beta
     16-31: "Field B"
 ```
 
-Code: %s
+⚠️ NO EMOJI in field names
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
 -- ========================================
--- PLANNING DIAGRAMS
+-- 📝 PLANNING DIAGRAMS
 -- ========================================
 
--- 18. REQUIREMENT
+-- 1️⃣8️⃣ REQUIREMENT
 M.build_requirement_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid requirement diagram from this %s code.
+  return string.format([[🔍 Create a Mermaid requirement diagram from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 requirementDiagram
     requirement Req1 {
@@ -527,16 +559,18 @@ requirementDiagram
     Req1 - satisfies -> Module
 ```
 
-Code: %s
+⚠️ NO EMOJI in requirement text
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
--- 19. MINDMAP
+-- 1️⃣9️⃣ MINDMAP
 M.build_mindmap_prompt = function(filetype, code_content)
-  return string.format([[Create a Mermaid mindmap from this %s code.
+  return string.format([[🔍 Create a Mermaid mindmap from this %s code.
 
-FORMAT:
+📋 FORMAT:
 ```mermaid
 mindmap
   root((Core))
@@ -547,9 +581,11 @@ mindmap
       Sub B1
 ```
 
-Code: %s
+⚠️ NO EMOJI in topic names
 
-OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
+📝 Code: %s
+
+🎯 OUTPUT ONLY mermaid code:]], filetype, code_content:sub(1, 2000))
 end
 
 return M

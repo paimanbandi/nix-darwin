@@ -107,6 +107,9 @@
             ## V
             vlang
 
+            ## Elixir
+            beamMinimal28Packages.elixir_1_19
+
             ## Python
             python314
             pipx

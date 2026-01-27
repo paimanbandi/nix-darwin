@@ -28,6 +28,21 @@ return {
           args = { "format", "$FILENAME" },
           stdin = false,
         },
+        mix_format = {
+          command = "mix",
+          args = function(self, ctx)
+            -- Check if we're in a Mix project
+            local mix_exs = vim.fn.findfile("mix.exs", vim.fn.expand("%:p:h") .. ";")
+            if mix_exs ~= "" then
+              return { "format", ctx.filename }
+            else
+              -- Fallback to standalone format if not in a Mix project
+              return { "format", ctx.filename }
+            end
+          end,
+          stdin = false,
+          cwd = require("conform.util").root_file({ "mix.exs" }),
+        },
       },
       formatters_by_ft = {
         lua = { "stylua" },
@@ -47,6 +62,10 @@ return {
         swift = { "swift_format" },
         nix = { "nixfmt" },
         cs = { "csharpier" },
+        elixir = { "mix_format" },
+        eelixir = { "mix_format" },
+        heex = { "mix_format" },
+        surface = { "mix_format" },
       },
       format_on_save = function(bufnr)
         local ignore_filetypes = { "sql" }
