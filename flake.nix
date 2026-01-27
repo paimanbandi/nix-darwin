@@ -108,7 +108,8 @@
             vlang
 
             ## Elixir
-            beamMinimal28Packages.elixir_1_19
+            beamMinimal28Packages.elixir
+            beamMinimal28Packages.elixir-ls
 
             ## Python
             python314
@@ -143,9 +144,10 @@
             # Web server
             caddy
 
-            # Cloud & Infrastructure
+            ## Cloud & Infrastructure
             awscli
             # awscli2
+            flyctl
 
             # Container & virtualization
             docker
