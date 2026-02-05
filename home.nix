@@ -14,6 +14,7 @@
   home.packages = with pkgs; [
     starship
     zsh
+    jq
   ];
 
   home.file.".config/nvim".source = ./nvim;

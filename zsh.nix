@@ -48,46 +48,131 @@
     };
 
     initContent = ''
-      export EDITOR=nvim
-      export NVIM_NO_TITLE=1
-      export FLUTTER_HOME="/Users/paiman/Programs/flutter"
-      export CARGO_HOME="/Users/paiman/.cargo"
-      export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+            export EDITOR=nvim
+            export NVIM_NO_TITLE=1
+            export FLUTTER_HOME="/Users/paiman/Programs/flutter"
+            export CARGO_HOME="/Users/paiman/.cargo"
+            export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       export PATH="/run/current-system/sw/bin:$FLUTTER_HOME/bin:$CARGO_HOME/bin:$PATH"
 
-      eval "$(starship init zsh)"
+            # --- LOAD SECRETS FROM JSON FILE ---
+            if [ -f "$HOME/.secrets.json" ]; then
+              # Using jq to parse JSON
+              export DEEPSEEK_API_KEY=$(jq -r '.deepseek_api_key // empty' "$HOME/.secrets.json")
+              export OPENAI_API_KEY=$(jq -r '.openai_api_key // empty' "$HOME/.secrets.json")
+              export ANTHROPIC_API_KEY=$(jq -r '.anthropic_api_key // empty' "$HOME/.secrets.json")
+              export GITHUB_TOKEN=$(jq -r '.github_token // empty' "$HOME/.secrets.json")
+              export AWS_ACCESS_KEY_ID=$(jq -r '.aws_access_key // empty' "$HOME/.secrets.json")
+              export AWS_SECRET_ACCESS_KEY=$(jq -r '.aws_secret_key // empty' "$HOME/.secrets.json")
+              
+              # Test jika key ada
+              if [ -n "$DEEPSEEK_API_KEY" ]; then
+                echo "Loaded DeepSeek API key"
+              fi
+              if [ -n "$OPENAI_API_KEY" ]; then
+                echo "Loaded OpenAI API key"
+              fi
+            else
+              echo "~/.secrets.json not found. Create it with your API keys."
+            fi
+            # --- END LOAD SECRETS ---
 
-      # History search
-      autoload -U up-line-or-beginning-search down-line-or-beginning-search
-      zle -N up-line-or-beginning-search
-      zle -N down-line-or-beginning-search
-      bindkey '^[[A' up-line-or-beginning-search
-      bindkey '^[[B' down-line-or-beginning-search
+            eval "$(starship init zsh)"
 
-      export NVM_DIR="$HOME/.nvm"
-      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+            # History search
+            autoload -U up-line-or-beginning-search down-line-or-beginning-search
+            zle -N up-line-or-beginning-search
+            zle -N down-line-or-beginning-search
+            bindkey '^[[A' up-line-or-beginning-search
+            bindkey '^[[B' down-line-or-beginning-search
 
-      # --- Ghostty dynamic title ---
-      autoload -Uz add-zsh-hook
-      function set_ghostty_title() {
-        print -Pn "\e]0;%1~\a"
-      }
-      add-zsh-hook precmd set_ghostty_title
-      # --- End Ghostty title ---
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
-      # --- Function override for nd ---
-      function n() {
-        print -Pn "\e]0;$(basename $PWD)\a"   # set judul ke nama folder sebelum nvim
-        export NVIM_NO_TITLE=1
-        nvim "$@"
-      }
-      function nd() {
-        print -Pn "\e]0;$(basename $PWD)\a"   # set judul ke nama folder sebelum nvim
-        export NVIM_NO_TITLE=1
-        nvim .
-      }
-      # --- End nd function ---
+            # --- Ghostty dynamic title ---
+            autoload -Uz add-zsh-hook
+            function set_ghostty_title() {
+              print -Pn "\e]0;%1~\a"
+            }
+            add-zsh-hook precmd set_ghostty_title
+            # --- End Ghostty title ---
+
+            # --- Function override for nd ---
+            function n() {
+              print -Pn "\e]0;$(basename $PWD)\a"   # set judul ke nama folder sebelum nvim
+              export NVIM_NO_TITLE=1
+              nvim "$@"
+            }
+            function nd() {
+              print -Pn "\e]0;$(basename $PWD)\a"   # set judul ke nama folder sebelum nvim
+              export NVIM_NO_TITLE=1
+              nvim .
+            }
+            # --- End nd function ---
+
+            # --- Helper function untuk manage secrets ---
+            secrets() {
+              local cmd="$1"
+              local key="$2"
+              local value="$3"
+              local secrets_file="$HOME/.secrets.json"
+              
+              case "$cmd" in
+                "show")
+                  if [ -f "$secrets_file" ]; then
+                    echo "Secrets in $secrets_file:"
+                    jq -r 'to_entries[] | "  \(.key): \(.value | tostring | .[0:10])..."' "$secrets_file"
+                  else
+                    echo "$secrets_file not found"
+                  fi
+                  ;;
+                "add")
+                  if [ -z "$key" ] || [ -z "$value" ]; then
+                    echo "Usage: secrets add <key> <value>"
+                    return 1
+                  fi
+                  if [ -f "$secrets_file" ]; then
+                    jq --arg k "$key" --arg v "$value" '. + {($k): $v}' "$secrets_file" > "${secrets_file}.tmp" && \
+                      mv "${secrets_file}.tmp" "$secrets_file"
+                    echo "Added/updated: $key"
+                    # Reload environment
+                    source <(jq -r 'to_entries[] | "export \(.key | ascii_upcase)=\"\(.value)\""' "$secrets_file" 2>/dev/null)
+                  else
+                    echo "{\"$key\": \"$value\"}" > "$secrets_file"
+                    echo "Created $secrets_file with: $key"
+                    export "$(echo "$key" | tr '[:lower:]' '[:upper:]')"="$value"
+                  fi
+                  ;;
+                "get")
+                  if [ -z "$key" ]; then
+                    echo "Usage: secrets get <key>"
+                    return 1
+                  fi
+                  if [ -f "$secrets_file" ]; then
+                    jq -r ".$key // empty" "$secrets_file"
+                  else
+                    echo ""
+                  fi
+                  ;;
+                "edit")
+                  nvim "$secrets_file"
+                  # Reload setelah edit
+                  if [ -f "$secrets_file" ]; then
+                    source <(jq -r 'to_entries[] | "export \(.key | ascii_upcase)=\"\(.value)\""' "$secrets_file" 2>/dev/null)
+                    echo "Reloaded secrets"
+                  fi
+                  ;;
+                *)
+                  echo "Usage: secrets <command>"
+                  echo "Commands:"
+                  echo "  show                    - Show all secrets (masked)"
+                  echo "  add <key> <value>       - Add/update a secret"
+                  echo "  get <key>               - Get secret value"
+                  echo "  edit                    - Edit secrets file"
+                  ;;
+              esac
+            }
     '';
   };
 }
