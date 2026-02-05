@@ -286,10 +286,57 @@ M.show_help = function()
   vim.notify(help_text, vim.log.levels.INFO)
 end
 
-return {
-  setup = M.setup,
+local lazy_spec = {
+  dir = vim.fn.stdpath("config") .. "/lua/plugins/markdown-ai",
+  name = "markdown-ai",
+  event = { "BufRead", "BufNewFile" },
+  dependencies = {
+    "iamcco/markdown-preview.nvim",
+  },
+  keys = {
+    { "<leader>ma", M.generate_auto, desc = "📊 Generate Diagram (Auto)" },
+    { "<leader>mA", function() M.generate_auto("simple") end, desc = "📊 Generate Simple Diagram" },
+    { "<leader>md", M.generate_manual, desc = "📝 Generate Diagram (Choose)" },
+    { "<leader>mp", M.generate_with_provider_choice, desc = "🤖 Generate with Provider" },
+    { "<leader>mv", M.preview_diagram, desc = "👁️ Preview Diagram" },
+    { "<leader>ms", function() config.show_provider_status() end, desc = "🔧 Show Provider Status" },
+    { "<leader>mh", M.show_help, desc = "❓ Show Help" },
+    { "<leader>mc", M.configure_provider, desc = "⚙️ Configure Provider" },
+  },
+  opts = {
+    provider = "claude",
+    save_path = "./diagrams",
+    auto_detect = true,
+    providers = {
+      deepseek = {
+        enabled = true,
+        api_key_env = "DEEPSEEK_API_KEY",
+      },
+      claude = {
+        enabled = true,
+      }
+    }
+  },
+  config = function(_, opts)
+    M.setup(opts)
+  end,
+}
+
+-- Untuk backward compatibility
+local function setup(user_config)
+  return M.setup(user_config)
+end
+
+return setmetatable({
+  setup = setup,
   generate_auto = M.generate_auto,
   generate_manual = M.generate_manual,
   preview_diagram = M.preview_diagram,
   show_help = M.show_help,
-}
+  generate_with_provider_choice = M.generate_with_provider_choice,
+  configure_provider = M.configure_provider,
+}, {
+  __call = function()
+    return lazy_spec
+  end
+})
