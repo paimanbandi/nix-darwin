@@ -204,6 +204,8 @@
 
             bat
 
+            ngrok
+
           ];
 
           nix.settings.experimental-features = [

@@ -1,221 +1,164 @@
 -- markdown-ai.lua
--- Main plugin with ALL diagram types support
+-- Main interface and keymaps
+
 local M = {}
+local config = require("plugins.markdown-ai-config")
+local core = require("plugins.markdown-ai-core")
+local providers = require("plugins.markdown-ai-providers")
 local prompts = require("plugins.markdown-ai-prompts")
 local detector = require("plugins.markdown-ai-detector")
 
--- Validate Mermaid syntax
-M.validate_mermaid = function(content)
-  local styled_nodes = {}
-  for node_id in content:gmatch("style%s+(%w+)%s+fill") do
-    styled_nodes[node_id] = true
-  end
+-- Setup plugin
+M.setup = function(user_config)
+  config.setup(user_config)
 
-  local has_issues = false
-  for node_id, _ in pairs(styled_nodes) do
-    if not content:match(node_id .. "%s*%[") and
-        not content:match(node_id .. "%s*%(") and
-        not content:match(node_id .. "%s*{") then
-      print("Warning: Styled node '" .. node_id .. "' not found")
-      has_issues = true
-    end
-  end
+  -- Register keymaps
+  M.register_keymaps()
 
-  return not has_issues
+  vim.notify("✅ Mermaid Diagram Generator ready", vim.log.levels.INFO)
 end
 
--- Call Claude CLI
-M.call_claude = function(prompt, output_file, title)
-  local claude_path = vim.fn.system("which claude"):gsub("\n", "")
+-- Register keymaps
+M.register_keymaps = function()
+  local keymaps = {
+    -- Auto-generate with default provider
+    {
+      "<leader>ma",
+      function() M.generate_auto() end,
+      desc = "📊 Generate Diagram (Auto)"
+    },
 
-  if claude_path == "" then
-    vim.notify("Claude CLI not found. Install: npm install -g @anthropic-ai/claude-cli", vim.log.levels.ERROR)
-    return
+    -- Auto-generate with simple complexity
+    {
+      "<leader>mA",
+      function() M.generate_auto("simple") end,
+      desc = "📊 Generate Simple Diagram"
+    },
+
+    -- Manual selection with provider choice
+    {
+      "<leader>md",
+      function() M.generate_manual() end,
+      desc = "📝 Generate Diagram (Choose)"
+    },
+
+    -- Generate with specific provider
+    {
+      "<leader>mp",
+      function() M.generate_with_provider_choice() end,
+      desc = "🤖 Generate with Provider"
+    },
+
+    -- Preview diagram
+    {
+      "<leader>mv",
+      function() M.preview_diagram() end,
+      desc = "👁️ Preview Diagram"
+    },
+
+    -- Show provider status
+    {
+      "<leader>ms",
+      function() config.show_provider_status() end,
+      desc = "🔧 Show Provider Status"
+    },
+
+    -- Show help
+    {
+      "<leader>mh",
+      function() M.show_help() end,
+      desc = "❓ Show Help"
+    },
+
+    -- Set default provider
+    {
+      "<leader>mc",
+      function() M.configure_provider() end,
+      desc = "⚙️ Configure Provider"
+    },
+  }
+
+  for _, keymap in ipairs(keymaps) do
+    vim.keymap.set("n", keymap[1], keymap[2], { desc = keymap.desc })
   end
-
-  local temp_prompt = vim.fn.tempname() .. "_prompt.txt"
-  local prompt_file = io.open(temp_prompt, "w")
-
-  if not prompt_file then
-    vim.notify("Failed to create temp file", vim.log.levels.ERROR)
-    return
-  end
-
-  prompt_file:write(prompt)
-  prompt_file:close()
-
-  vim.notify("🎨 Generating diagram... (10-30 seconds)", vim.log.levels.INFO)
-
-  local cmd = string.format("cat %s | claude", vim.fn.shellescape(temp_prompt))
-  local response_buffer = {}
-
-  vim.fn.jobstart(cmd, {
-    stdout_buffered = true,
-    on_stdout = function(_, data)
-      if data then
-        for _, line in ipairs(data) do
-          if line ~= "" then
-            table.insert(response_buffer, line)
-          end
-        end
-      end
-    end,
-    on_exit = function(_, exit_code)
-      pcall(os.remove, temp_prompt)
-
-      if exit_code ~= 0 then
-        vim.notify("❌ Generation failed", vim.log.levels.ERROR)
-        return
-      end
-
-      local response = table.concat(response_buffer, "\n")
-
-      if not response:match("```mermaid") then
-        vim.notify("❌ Invalid response: No mermaid blocks found", vim.log.levels.ERROR)
-        return
-      end
-
-      local md_content = string.format([[# %s
-
-Generated: %s
-Source: %s
-
-%s
-]], title, os.date("%Y-%m-%d %H:%M:%S"), vim.fn.expand('%:t'), response)
-
-      local file = io.open(output_file, "w")
-      if file then
-        file:write(md_content)
-        file:close()
-
-        vim.notify("✅ Diagram generated successfully!", vim.log.levels.INFO)
-
-        vim.schedule(function()
-          vim.cmd("edit " .. vim.fn.fnameescape(output_file))
-          vim.defer_fn(function()
-            vim.cmd("MarkdownPreview")
-          end, 200)
-        end)
-      end
-    end
-  })
 end
 
--- Generate with auto-detection
+-- Auto-generate diagram
 M.generate_auto = function(complexity)
+  local code_content = core.get_buffer_content()
+  if not code_content then return end
+
   local filetype = vim.bo.filetype
-  local filename = vim.fn.expand('%:t:r')
-  local dir = vim.fn.expand('%:p:h')
+  local diagram_type, scores = core.auto_detect_diagram(code_content, filetype)
 
-  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-  local code_content = table.concat(lines, "\n")
+  vim.notify("🔍 Detected: " .. diagram_type, vim.log.levels.INFO)
 
-  if code_content == "" then
-    vim.notify("⚠️  No content to analyze", vim.log.levels.WARN)
-    return
-  end
-
-  -- Auto-detect best diagram type
-  local analysis = detector.detect_diagram_type(code_content, filetype)
-  local recommended, scores = detector.recommend_diagram_type(analysis)
-
-  vim.notify("🔍 Analyzing code...", vim.log.levels.INFO)
-  vim.notify("💡 Recommended: " .. recommended, vim.log.levels.INFO)
-
-  -- Generate based on recommendation
-  local prompt
-  if recommended == "flowchart" then
-    prompt = prompts.build_flowchart_prompt(filetype, code_content, complexity or "moderate")
-  elseif recommended == "sequence" then
-    prompt = prompts.build_sequence_prompt(filetype, code_content)
-  elseif recommended == "class_diagram" then
-    prompt = prompts.build_class_diagram_prompt(filetype, code_content)
-  elseif recommended == "state_diagram" then
-    prompt = prompts.build_state_diagram_prompt(filetype, code_content)
-  elseif recommended == "er_diagram" then
-    prompt = prompts.build_er_diagram_prompt(filetype, code_content)
-  elseif recommended == "user_journey" then
-    prompt = prompts.build_user_journey_prompt(filetype, code_content)
-  elseif recommended == "gantt" then
-    prompt = prompts.build_gantt_prompt(filetype, code_content)
-  elseif recommended == "pie" then
-    prompt = prompts.build_pie_prompt(filetype, code_content)
-  elseif recommended == "quadrant" then
-    prompt = prompts.build_quadrant_prompt(filetype, code_content)
-  elseif recommended == "requirement" then
-    prompt = prompts.build_requirement_prompt(filetype, code_content)
-  elseif recommended == "gitgraph" then
-    prompt = prompts.build_gitgraph_prompt(filetype, code_content)
-  elseif recommended == "mindmap" then
-    prompt = prompts.build_mindmap_prompt(filetype, code_content)
-  elseif recommended == "timeline" then
-    prompt = prompts.build_timeline_prompt(filetype, code_content)
-  elseif recommended == "sankey" then
-    prompt = prompts.build_sankey_prompt(filetype, code_content)
-  elseif recommended == "xy_chart" then
-    prompt = prompts.build_xy_chart_prompt(filetype, code_content)
-  elseif recommended == "block_diagram" then
-    prompt = prompts.build_block_diagram_prompt(filetype, code_content)
-  elseif recommended == "packet" then
-    prompt = prompts.build_packet_prompt(filetype, code_content)
-  elseif recommended == "kanban" then
-    prompt = prompts.build_kanban_prompt(filetype, code_content)
-  elseif recommended == "architecture" then
-    prompt = prompts.build_architecture_prompt(filetype, code_content)
-  else
-    prompt = prompts.build_flowchart_prompt(filetype, code_content, complexity or "moderate")
-  end
-
-  local output_file = dir .. "/" .. filename .. "_" .. recommended .. ".md"
-  local title = filename .. " - " .. recommended:gsub("_", " "):gsub("^%l", string.upper)
-
-  M.call_claude(prompt, output_file, title)
+  M.generate_diagram(diagram_type, complexity)
 end
 
--- Generate with manual selection
-M.generate_manual = function()
+-- Generate diagram with specific type
+M.generate_diagram = function(diagram_type, complexity, provider_name)
+  local code_content = core.get_buffer_content()
+  if not code_content then return end
+
   local filetype = vim.bo.filetype
-  local filename = vim.fn.expand('%:t:r')
-  local dir = vim.fn.expand('%:p:h')
+  local prompt = core.build_diagram_prompt(diagram_type, filetype, code_content, complexity)
 
-  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-  local code_content = table.concat(lines, "\n")
+  local output_file = core.generate_output_filename(diagram_type)
+  local title = core.get_diagram_title(diagram_type)
 
-  if code_content == "" then
-    vim.notify("⚠️  No content to analyze", vim.log.levels.WARN)
-    return
-  end
+  local provider = provider_name or config.config.provider
 
-  -- Show comprehensive selection menu
-  local choice = vim.fn.confirm(
-    "Select diagram type:",
-    "&1.Flowchart\n" ..
-    "&2.Sequence\n" ..
-    "&3.Class\n" ..
-    "&4.State\n" ..
-    "&5.ER Diagram\n" ..
-    "&6.User Journey\n" ..
-    "&7.Gantt\n" ..
-    "&8.Pie Chart\n" ..
-    "&9.Quadrant\n" ..
-    "1&0.Requirement\n" ..
-    "11.&GitGraph\n" ..
-    "12.&Mindmap\n" ..
-    "13.&Timeline\n" ..
-    "14.Sank&ey\n" ..
-    "15.&XY Chart\n" ..
-    "16.&Block\n" ..
-    "17.&Packet\n" ..
-    "18.K&anban\n" ..
-    "19.&Architecture\n" ..
-    "20.&Cancel",
-    1
-  )
+  vim.notify("🎨 Generating " .. diagram_type .. " with " .. provider .. "...", vim.log.levels.INFO)
 
-  if choice == 20 or choice == 0 then
-    return
-  end
+  providers.call_provider(provider, prompt, output_file, title, function(success, mermaid_code, provider_used)
+    if success and mermaid_code then
+      local saved = core.save_diagram_file(mermaid_code, output_file, title, provider_used)
+      if saved then
+        M.open_and_preview(output_file)
+      end
+    end
+  end)
+end
 
+-- Manual generation with provider choice
+M.generate_manual = function()
+  providers.select_provider(function(provider)
+    if not provider then return end
+
+    -- Then select diagram type
+    M.select_diagram_type(function(diagram_type)
+      if not diagram_type then return end
+
+      -- Optional: select complexity for flowcharts
+      local complexity = "moderate"
+      if diagram_type == "flowchart" then
+        complexity = M.select_complexity()
+        if not complexity then return end
+      end
+
+      M.generate_diagram(diagram_type, complexity, provider)
+    end)
+  end)
+end
+
+-- Generate with provider choice only
+M.generate_with_provider_choice = function()
+  providers.select_provider(function(provider)
+    if not provider then return end
+
+    local code_content = core.get_buffer_content()
+    if not code_content then return end
+
+    local filetype = vim.bo.filetype
+    local diagram_type = core.auto_detect_diagram(code_content, filetype)
+
+    M.generate_diagram(diagram_type, "moderate", provider)
+  end)
+end
+
+-- Select diagram type
+M.select_diagram_type = function(callback)
   local diagram_types = {
     "flowchart", "sequence", "class_diagram", "state_diagram", "er_diagram",
     "user_journey", "gantt", "pie", "quadrant", "requirement",
@@ -223,66 +166,67 @@ M.generate_manual = function()
     "block_diagram", "packet", "kanban", "architecture"
   }
 
-  local diagram_type = diagram_types[choice]
-  local prompt
+  local display_names = {
+    "Flowchart", "Sequence Diagram", "Class Diagram", "State Diagram", "ER Diagram",
+    "User Journey", "Gantt Chart", "Pie Chart", "Quadrant Chart", "Requirement Diagram",
+    "Git Graph", "Mind Map", "Timeline", "Sankey Diagram", "XY Chart",
+    "Block Diagram", "Packet Diagram", "Kanban Board", "Architecture Diagram"
+  }
 
-  -- Build appropriate prompt
-  if diagram_type == "flowchart" then
-    local complexity_choice = vim.fn.confirm(
-      "Select complexity:",
-      "&Simple (30 nodes)\n&Moderate (50 nodes)\n&Detailed (80 nodes)",
-      2
-    )
-    local complexity = complexity_choice == 1 and "simple" or (complexity_choice == 3 and "detailed" or "moderate")
-    prompt = prompts.build_flowchart_prompt(filetype, code_content, complexity)
-  elseif diagram_type == "sequence" then
-    prompt = prompts.build_sequence_prompt(filetype, code_content)
-  elseif diagram_type == "class_diagram" then
-    prompt = prompts.build_class_diagram_prompt(filetype, code_content)
-  elseif diagram_type == "state_diagram" then
-    prompt = prompts.build_state_diagram_prompt(filetype, code_content)
-  elseif diagram_type == "er_diagram" then
-    prompt = prompts.build_er_diagram_prompt(filetype, code_content)
-  elseif diagram_type == "user_journey" then
-    prompt = prompts.build_user_journey_prompt(filetype, code_content)
-  elseif diagram_type == "gantt" then
-    prompt = prompts.build_gantt_prompt(filetype, code_content)
-  elseif diagram_type == "pie" then
-    prompt = prompts.build_pie_prompt(filetype, code_content)
-  elseif diagram_type == "quadrant" then
-    prompt = prompts.build_quadrant_prompt(filetype, code_content)
-  elseif diagram_type == "requirement" then
-    prompt = prompts.build_requirement_prompt(filetype, code_content)
-  elseif diagram_type == "gitgraph" then
-    prompt = prompts.build_gitgraph_prompt(filetype, code_content)
-  elseif diagram_type == "mindmap" then
-    prompt = prompts.build_mindmap_prompt(filetype, code_content)
-  elseif diagram_type == "timeline" then
-    prompt = prompts.build_timeline_prompt(filetype, code_content)
-  elseif diagram_type == "sankey" then
-    prompt = prompts.build_sankey_prompt(filetype, code_content)
-  elseif diagram_type == "xy_chart" then
-    prompt = prompts.build_xy_chart_prompt(filetype, code_content)
-  elseif diagram_type == "block_diagram" then
-    prompt = prompts.build_block_diagram_prompt(filetype, code_content)
-  elseif diagram_type == "packet" then
-    prompt = prompts.build_packet_prompt(filetype, code_content)
-  elseif diagram_type == "kanban" then
-    prompt = prompts.build_kanban_prompt(filetype, code_content)
-  elseif diagram_type == "architecture" then
-    prompt = prompts.build_architecture_prompt(filetype, code_content)
+  local menu_text = "Select Diagram Type:\n\n"
+  for i, display_name in ipairs(display_names) do
+    menu_text = menu_text .. string.format("&%d. %s\n", i, display_name)
   end
 
-  local output_file = dir .. "/" .. filename .. "_" .. diagram_type .. ".md"
-  local title = filename .. " - " .. diagram_type:gsub("_", " "):gsub("^%l", string.upper)
+  menu_text = menu_text .. string.format("&%d. Cancel", #diagram_types + 1)
 
-  vim.notify("🎨 Generating " .. diagram_type:gsub("_", " ") .. "...", vim.log.levels.INFO)
+  local choice = vim.fn.confirm(menu_text, "", #diagram_types + 1)
 
-  M.call_claude(prompt, output_file, title)
+  if choice == 0 or choice > #diagram_types then
+    if callback then callback(nil) end
+    return nil
+  end
+
+  local selected_type = diagram_types[choice]
+
+  if callback then
+    callback(selected_type)
+  end
+
+  return selected_type
 end
 
--- Preview diagram
-M.preview = function()
+-- Select complexity level
+M.select_complexity = function()
+  local choice = vim.fn.confirm(
+    "Select Complexity Level:",
+    "&1. Simple (20-30 nodes)\n&2. Moderate (40-50 nodes)\n&3. Detailed (70-80 nodes)\n&4. Cancel",
+    2
+  )
+
+  if choice == 1 then
+    return "simple"
+  elseif choice == 2 then
+    return "moderate"
+  elseif choice == 3 then
+    return "detailed"
+  else
+    return nil
+  end
+end
+
+-- Open and preview diagram
+M.open_and_preview = function(filepath)
+  vim.schedule(function()
+    vim.cmd("edit " .. vim.fn.fnameescape(filepath))
+    vim.defer_fn(function()
+      vim.cmd("MarkdownPreview")
+    end, 300)
+  end)
+end
+
+-- Preview current diagram
+M.preview_diagram = function()
   local content = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
   if not content:match("```mermaid") then
     vim.notify("⚠️  No mermaid diagram found in current buffer", vim.log.levels.WARN)
@@ -291,59 +235,61 @@ M.preview = function()
   vim.cmd("MarkdownPreview")
 end
 
+-- Configure provider
+M.configure_provider = function()
+  local choice = vim.fn.confirm(
+    "Configure:",
+    "&1. Set Default Provider\n&2. Toggle Auto-detect\n&3. Change Save Path\n&4. Cancel",
+    1
+  )
+
+  if choice == 1 then
+    providers.select_provider(function(provider)
+      if provider then
+        config.set_default_provider(provider)
+      end
+    end)
+  elseif choice == 2 then
+    config.config.auto_detect = not config.config.auto_detect
+    local status = config.config.auto_detect and "enabled" or "disabled"
+    vim.notify("✅ Auto-detect " .. status, vim.log.levels.INFO)
+  elseif choice == 3 then
+    local new_path = vim.fn.input("Save path: ", config.config.save_path)
+    if new_path and new_path ~= "" then
+      config.config.save_path = new_path
+      vim.fn.mkdir(new_path, "p")
+      vim.notify("✅ Save path set to: " .. new_path, vim.log.levels.INFO)
+    end
+  end
+end
+
 -- Show help
 M.show_help = function()
   local help_text = [[
 ╔══════════════════════════════════════════════════════════╗
-║         Mermaid Diagram Generator - Quick Help           ║
+║      Multi-Provider Diagram Generator - Quick Help       ║
 ╠══════════════════════════════════════════════════════════╣
-║ <leader>ma  - Auto-generate (detect best type)          ║
+║ <leader>ma  - Auto-generate (default provider)          ║
 ║ <leader>mA  - Auto-generate (simple/compact)            ║
-║ <leader>md  - Manual selection (choose type)            ║
-║ <leader>mp  - Preview current diagram                   ║
+║ <leader>md  - Manual (choose provider + diagram type)   ║
+║ <leader>mp  - Choose provider only                      ║
+║ <leader>mv  - Preview current diagram                   ║
+║ <leader>ms  - Show provider status                      ║
+║ <leader>mc  - Configure settings                        ║
 ║ <leader>mh  - Show this help                            ║
 ╠══════════════════════════════════════════════════════════╣
-║ Available Diagram Types (19 total):                     ║
-║                                                          ║
-║ Core: Flowchart, Sequence, Class, State, ER             ║
-║ UX: User Journey, Gantt, Timeline                       ║
-║ Data: Pie, Quadrant, XY Chart, Sankey                   ║
-║ Project: Requirement, Kanban, Mindmap                   ║
-║ Dev: GitGraph, Architecture (C4), Block, Packet         ║
+║ Supported Providers: Claude, DeepSeek, OpenAI           ║
+║ Default: Claude                                         ║
 ╚══════════════════════════════════════════════════════════╝
 ]]
+
   vim.notify(help_text, vim.log.levels.INFO)
 end
 
-M.keymaps = {
-  {
-    "<leader>ma",
-    function() M.generate_auto("moderate") end,
-    desc = "📊 Generate Diagram (Auto-detect)"
-  },
-  {
-    "<leader>mA",
-    function() M.generate_auto("simple") end,
-    desc = "📊 Generate Simple Diagram (Auto)"
-  },
-  {
-    "<leader>mo",
-    function() M.generate_manual() end,
-    desc = "📝 Generate Diagram (Choose type)"
-  },
-  {
-    "<leader>mp",
-    function() M.preview() end,
-    desc = "👁️ Preview Diagram"
-  },
-  {
-    "<leader>mh",
-    function() M.show_help() end,
-    desc = "❓ Show Help"
-  },
-}
-
 return {
-  "iamcco/markdown-preview.nvim",
-  keys = M.keymaps,
+  setup = M.setup,
+  generate_auto = M.generate_auto,
+  generate_manual = M.generate_manual,
+  preview_diagram = M.preview_diagram,
+  show_help = M.show_help,
 }
