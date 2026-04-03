@@ -53,6 +53,7 @@
       export FLUTTER_HOME="/Users/paiman/Programs/flutter"
       export CARGO_HOME="/Users/paiman/.cargo"
       export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      export DOCKER_HOST="unix:///Users/paiman/.colima/default/docker.sock"
       export PATH="/run/current-system/sw/bin:$FLUTTER_HOME/bin:$CARGO_HOME/bin:$PATH"
 
       # Load secrets from JSON file
@@ -65,6 +66,9 @@
         export AWS_SECRET_ACCESS_KEY=$(jq -r '.aws_secret_key // empty' "$HOME/.secrets.json")
         
         # Test if keys loaded
+        if [ -n "$ANTHROPIC_API_KEY" ]; then
+          echo "Loaded Anthropic API key"
+        fi
         if [ -n "$DEEPSEEK_API_KEY" ]; then
           echo "Loaded DeepSeek API key"
         fi

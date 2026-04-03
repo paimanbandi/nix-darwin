@@ -7,6 +7,9 @@ g.indentLine_char = '¦'
 opt.mouse = 'a'
 opt.clipboard = 'unnamedplus'
 
+opt.autowrite = false
+opt.autowriteall = false
+
 opt.number = true
 opt.relativenumber = false
 opt.numberwidth = 8

@@ -11,66 +11,48 @@ local detector = require("plugins.markdown-ai-detector")
 -- Setup plugin
 M.setup = function(user_config)
   config.setup(user_config)
-
-  -- Register keymaps
   M.register_keymaps()
-
   vim.notify("✅ Mermaid Diagram Generator ready", vim.log.levels.INFO)
 end
 
 -- Register keymaps
 M.register_keymaps = function()
   local keymaps = {
-    -- Auto-generate with default provider
     {
       "<leader>ma",
       function() M.generate_auto() end,
       desc = "📊 Generate Diagram (Auto)"
     },
-
-    -- Auto-generate with simple complexity
     {
       "<leader>mA",
       function() M.generate_auto("simple") end,
       desc = "📊 Generate Simple Diagram"
     },
-
-    -- Manual selection with provider choice
     {
       "<leader>md",
       function() M.generate_manual() end,
       desc = "📝 Generate Diagram (Choose)"
     },
-
-    -- Generate with specific provider
     {
       "<leader>mp",
       function() M.generate_with_provider_choice() end,
       desc = "🤖 Generate with Provider"
     },
-
-    -- Preview diagram
     {
       "<leader>mv",
       function() M.preview_diagram() end,
       desc = "👁️ Preview Diagram"
     },
-
-    -- Show provider status
     {
       "<leader>ms",
       function() config.show_provider_status() end,
       desc = "🔧 Show Provider Status"
     },
-
-    -- Show help
     {
       "<leader>mh",
       function() M.show_help() end,
       desc = "❓ Show Help"
     },
-
-    -- Set default provider
     {
       "<leader>mc",
       function() M.configure_provider() end,
@@ -126,11 +108,9 @@ M.generate_manual = function()
   providers.select_provider(function(provider)
     if not provider then return end
 
-    -- Then select diagram type
     M.select_diagram_type(function(diagram_type)
       if not diagram_type then return end
 
-      -- Optional: select complexity for flowcharts
       local complexity = "moderate"
       if diagram_type == "flowchart" then
         complexity = M.select_complexity()
@@ -177,7 +157,6 @@ M.select_diagram_type = function(callback)
   for i, display_name in ipairs(display_names) do
     menu_text = menu_text .. string.format("&%d. %s\n", i, display_name)
   end
-
   menu_text = menu_text .. string.format("&%d. Cancel", #diagram_types + 1)
 
   local choice = vim.fn.confirm(menu_text, "", #diagram_types + 1)
@@ -188,11 +167,7 @@ M.select_diagram_type = function(callback)
   end
 
   local selected_type = diagram_types[choice]
-
-  if callback then
-    callback(selected_type)
-  end
-
+  if callback then callback(selected_type) end
   return selected_type
 end
 
@@ -282,26 +257,30 @@ M.show_help = function()
 ║ Default: Claude                                         ║
 ╚══════════════════════════════════════════════════════════╝
 ]]
-
   vim.notify(help_text, vim.log.levels.INFO)
 end
 
-local lazy_spec = {
-  dir = vim.fn.stdpath("config") .. "/lua/plugins/markdown-ai",
+-- ✅ PERUBAHAN UTAMA:
+-- 1. Hapus `local lazy_spec = {...}` yang terpisah
+-- 2. Hapus `setmetatable` dengan __call
+-- 3. Return langsung sebagai plain plugin spec table
+-- 4. Hapus markdown-ai-wrapper.lua, tidak dibutuhkan lagi
+return {
+  dir = vim.fn.stdpath("config") .. "/lua/plugins",
   name = "markdown-ai",
   event = { "BufRead", "BufNewFile" },
   dependencies = {
     "iamcco/markdown-preview.nvim",
   },
   keys = {
-    { "<leader>ma", M.generate_auto, desc = "📊 Generate Diagram (Auto)" },
+    { "<leader>ma", function() M.generate_auto() end, desc = "📊 Generate Diagram (Auto)" },
     { "<leader>mA", function() M.generate_auto("simple") end, desc = "📊 Generate Simple Diagram" },
-    { "<leader>md", M.generate_manual, desc = "📝 Generate Diagram (Choose)" },
-    { "<leader>mp", M.generate_with_provider_choice, desc = "🤖 Generate with Provider" },
-    { "<leader>mv", M.preview_diagram, desc = "👁️ Preview Diagram" },
+    { "<leader>md", function() M.generate_manual() end, desc = "📝 Generate Diagram (Choose)" },
+    { "<leader>mp", function() M.generate_with_provider_choice() end, desc = "🤖 Generate with Provider" },
+    { "<leader>mv", function() M.preview_diagram() end, desc = "👁️ Preview Diagram" },
     { "<leader>ms", function() config.show_provider_status() end, desc = "🔧 Show Provider Status" },
-    { "<leader>mh", M.show_help, desc = "❓ Show Help" },
-    { "<leader>mc", M.configure_provider, desc = "⚙️ Configure Provider" },
+    { "<leader>mh", function() M.show_help() end, desc = "❓ Show Help" },
+    { "<leader>mc", function() M.configure_provider() end, desc = "⚙️ Configure Provider" },
   },
   opts = {
     provider = "claude",
@@ -321,22 +300,3 @@ local lazy_spec = {
     M.setup(opts)
   end,
 }
-
--- Untuk backward compatibility
-local function setup(user_config)
-  return M.setup(user_config)
-end
-
-return setmetatable({
-  setup = setup,
-  generate_auto = M.generate_auto,
-  generate_manual = M.generate_manual,
-  preview_diagram = M.preview_diagram,
-  show_help = M.show_help,
-  generate_with_provider_choice = M.generate_with_provider_choice,
-  configure_provider = M.configure_provider,
-}, {
-  __call = function()
-    return lazy_spec
-  end
-})

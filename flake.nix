@@ -109,6 +109,7 @@
 
             ## Elixir
             beamMinimal28Packages.elixir
+            # beamMinimal28Packages.elixir_1_19
             beamMinimal28Packages.elixir-ls
 
             ## Python
@@ -205,6 +206,10 @@
             bat
 
             ngrok
+            poppler-utils
+            catdoc # Untuk DOC (jika perlu)
+            pandoc # Konversi markdown/docx
+            antiword
 
           ];
 

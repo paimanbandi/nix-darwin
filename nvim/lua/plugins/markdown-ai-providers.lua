@@ -5,56 +5,100 @@ local M = {}
 local config = require("plugins.markdown-ai-config")
 local core = require("plugins.markdown-ai-core")
 
--- Call Claude CLI
+-- ✅ PERUBAHAN: call_claude pakai REST API langsung (curl), bukan Claude CLI
 M.call_claude = function(prompt, output_file, title, on_complete)
-  local claude_path = vim.fn.system("which claude"):gsub("\n", "")
+  local api_key = vim.fn.getenv("ANTHROPIC_API_KEY")
 
-  if claude_path == "" then
-    vim.notify("Claude CLI not found. Install: npm install -g @anthropic-ai/claude-cli", vim.log.levels.ERROR)
+  if not api_key or api_key == "" then
+    vim.notify("❌ ANTHROPIC_API_KEY not set", vim.log.levels.ERROR)
     if on_complete then on_complete(false) end
     return
   end
 
-  local temp_prompt = vim.fn.tempname() .. "_prompt.txt"
-  local prompt_file = io.open(temp_prompt, "w")
+  vim.notify("🤖 Generating with Claude API...", vim.log.levels.INFO)
 
-  if not prompt_file then
-    vim.notify("Failed to create temp file", vim.log.levels.ERROR)
+  -- Tulis prompt ke temp file untuk hindari shell escaping issues
+  local temp_body = vim.fn.tempname() .. "_body.json"
+  local response_file = vim.fn.tempname() .. "_response.json"
+
+  -- Build JSON body via Lua (lebih aman dari string format)
+  local body = vim.json.encode({
+    model = "claude-opus-4-5",
+    max_tokens = 4000,
+    system =
+    "You are an expert Mermaid diagram generator. Always respond with complete, valid Mermaid code in a ```mermaid code block. Include proper syntax and styling. Don't add explanations outside the code block.",
+    messages = {
+      { role = "user", content = prompt }
+    }
+  })
+
+  local f = io.open(temp_body, "w")
+  if not f then
+    vim.notify("❌ Failed to create temp file", vim.log.levels.ERROR)
     if on_complete then on_complete(false) end
     return
   end
+  f:write(body)
+  f:close()
 
-  prompt_file:write(prompt)
-  prompt_file:close()
-
-  vim.notify("🤖 Generating with Claude...", vim.log.levels.INFO)
-
-  local cmd = string.format("cat %s | claude", vim.fn.shellescape(temp_prompt))
-  local response_buffer = {}
+  local cmd = {
+    "curl", "-s", "-X", "POST",
+    "https://api.anthropic.com/v1/messages",
+    "-H", "x-api-key: " .. api_key,
+    "-H", "anthropic-version: 2023-06-01",
+    "-H", "content-type: application/json",
+    "-d", "@" .. temp_body,
+    "-o", response_file,
+  }
 
   vim.fn.jobstart(cmd, {
-    stdout_buffered = true,
-    on_stdout = function(_, data)
-      if data then
-        for _, line in ipairs(data) do
-          if line ~= "" then
-            table.insert(response_buffer, line)
-          end
-        end
-      end
-    end,
     on_exit = function(_, exit_code)
-      pcall(os.remove, temp_prompt)
+      pcall(os.remove, temp_body)
 
       if exit_code ~= 0 then
-        vim.notify("❌ Claude generation failed", vim.log.levels.ERROR)
+        vim.notify("❌ Claude API request failed (curl error)", vim.log.levels.ERROR)
         if on_complete then on_complete(false) end
         return
       end
 
-      local response = table.concat(response_buffer, "\n")
-      local mermaid_code = core.extract_mermaid_code(response)
+      local rf = io.open(response_file, "r")
+      if not rf then
+        vim.notify("❌ Failed to read Claude response file", vim.log.levels.ERROR)
+        if on_complete then on_complete(false) end
+        return
+      end
 
+      local raw = rf:read("*a")
+      rf:close()
+      pcall(os.remove, response_file)
+
+      -- Parse response
+      local ok, parsed = pcall(vim.json.decode, raw)
+      if not ok or not parsed then
+        vim.notify("❌ Failed to parse Claude response JSON", vim.log.levels.ERROR)
+        if on_complete then on_complete(false) end
+        return
+      end
+
+      -- Cek error dari API
+      if parsed.error then
+        vim.notify("❌ Claude API error: " .. (parsed.error.message or "unknown"), vim.log.levels.ERROR)
+        if on_complete then on_complete(false) end
+        return
+      end
+
+      -- Ambil text dari response
+      local text = parsed.content
+          and parsed.content[1]
+          and parsed.content[1].text
+
+      if not text then
+        vim.notify("❌ No text in Claude response", vim.log.levels.ERROR)
+        if on_complete then on_complete(false) end
+        return
+      end
+
+      local mermaid_code = core.extract_mermaid_code(text)
       if not mermaid_code then
         vim.notify("❌ No valid Mermaid code in Claude response", vim.log.levels.ERROR)
         if on_complete then on_complete(false) end
@@ -93,7 +137,6 @@ M.call_deepseek = function(prompt, output_file, title, on_complete)
 
   local provider_config = config.get_provider_config("deepseek")
 
-  -- Use async call
   vim.schedule(function()
     local co = coroutine.create(function()
       local success, response = pcall(function()
@@ -222,7 +265,6 @@ M.select_provider = function(callback)
     return nil
   end
 
-  -- Build menu
   local menu_items = {}
   local menu_text = "Select AI Provider:\n\n"
 
