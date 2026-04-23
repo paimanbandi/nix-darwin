@@ -52,7 +52,6 @@
             # Shell utilities
             lsd
             tree
-            neofetch
 
             # Text editors
             vim
@@ -80,7 +79,7 @@
 
             # Programming languages
             ## Ruby
-            ruby_3_2
+            ruby
             cocoapods
 
             ## Rust
@@ -92,11 +91,6 @@
             cargo-generate
             trunk
             wasm-bindgen-cli
-
-            # Dioxus system deps (macOS)
-            darwin.apple_sdk.frameworks.WebKit
-            darwin.apple_sdk.frameworks.CoreServices
-            darwin.apple_sdk.frameworks.Security
 
             ## Go
             go

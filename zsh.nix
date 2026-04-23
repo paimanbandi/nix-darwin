@@ -58,10 +58,10 @@
 
       # Load secrets from JSON file
       if [ -f "$HOME/.secrets.json" ]; then
-        export DEEPSEEK_API_KEY=$(jq -r '.deepseek_api_key // empty' "$HOME/.secrets.json")
+        # export DEEPSEEK_API_KEY=$(jq -r '.deepseek_api_key // empty' "$HOME/.secrets.json")
         export OPENAI_API_KEY=$(jq -r '.openai_api_key // empty' "$HOME/.secrets.json")
-        export ANTHROPIC_API_KEY=$(jq -r '.anthropic_api_key // empty' "$HOME/.secrets.json")
-        # export GITHUB_TOKEN=$(jq -r '.github_token // empty' "$HOME/.secrets.json")
+        # export ANTHROPIC_API_KEY=$(jq -r '.anthropic_api_key // empty' "$HOME/.secrets.json")
+        export GITHUB_TOKEN=$(jq -r '.github_token // empty' "$HOME/.secrets.json")
         export AWS_ACCESS_KEY_ID=$(jq -r '.aws_access_key // empty' "$HOME/.secrets.json")
         export AWS_SECRET_ACCESS_KEY=$(jq -r '.aws_secret_key // empty' "$HOME/.secrets.json")
       else
