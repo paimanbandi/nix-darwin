@@ -61,20 +61,9 @@
         export DEEPSEEK_API_KEY=$(jq -r '.deepseek_api_key // empty' "$HOME/.secrets.json")
         export OPENAI_API_KEY=$(jq -r '.openai_api_key // empty' "$HOME/.secrets.json")
         export ANTHROPIC_API_KEY=$(jq -r '.anthropic_api_key // empty' "$HOME/.secrets.json")
-        export GITHUB_TOKEN=$(jq -r '.github_token // empty' "$HOME/.secrets.json")
+        # export GITHUB_TOKEN=$(jq -r '.github_token // empty' "$HOME/.secrets.json")
         export AWS_ACCESS_KEY_ID=$(jq -r '.aws_access_key // empty' "$HOME/.secrets.json")
         export AWS_SECRET_ACCESS_KEY=$(jq -r '.aws_secret_key // empty' "$HOME/.secrets.json")
-        
-        # Test if keys loaded
-        if [ -n "$ANTHROPIC_API_KEY" ]; then
-          echo "Loaded Anthropic API key"
-        fi
-        if [ -n "$DEEPSEEK_API_KEY" ]; then
-          echo "Loaded DeepSeek API key"
-        fi
-        if [ -n "$OPENAI_API_KEY" ]; then
-          echo "Loaded OpenAI API key"
-        fi
       else
         echo "~/.secrets.json not found"
       fi

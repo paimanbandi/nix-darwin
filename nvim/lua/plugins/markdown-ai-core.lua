@@ -63,30 +63,62 @@ M.validate_mermaid = function(content)
   return not has_issues, styled_nodes
 end
 
--- Extract mermaid code from response
+-- ✅ PERUBAHAN 1: FIX crash "attempt to index local 'code' (a nil value)"
+-- Bug lama: `if code and code:match("graph") or code:match("seq...") or ...`
+-- karena precedence Lua dievaluasi sebagai:
+--   (code and code:match("graph")) or code:match("seq...") or code:match("class...")
+-- Kalau pattern pertama gagal -> code == nil -> code:match() di cabang `or`
+-- berikutnya meledak. Solusi: bungkus cek keyword di dalam `if code then ... end`.
 M.extract_mermaid_code = function(response_text)
+  -- Guard: input harus string non-kosong
+  if type(response_text) ~= "string" or response_text == "" then
+    return nil
+  end
+
   -- Try multiple patterns to extract mermaid code
   local patterns = {
-    "```mermaid\n(.-)\n```",
-    "```mermaid\n(.-)```",
-    "```mermaid\n(.-)$",
-    "```\n(.-)\n```", -- Fallback for no language tag
+    "```mermaid%s*\n(.-)\n```",
+    "```mermaid%s*\n(.-)```",
+    "```mermaid%s*\n(.-)$",
+    "```%s*\n(.-)\n```", -- Fallback for no language tag
   }
 
   for _, pattern in ipairs(patterns) do
     local code = response_text:match(pattern)
-    if code and code:match("graph") or code:match("sequenceDiagram") or code:match("classDiagram") then
-      -- Clean up the code
-      code = code:gsub("^%s+", ""):gsub("%s+$", "")
-      return code
+    if code then
+      if code:match("graph") or
+          code:match("flowchart") or
+          code:match("sequenceDiagram") or
+          code:match("classDiagram") or
+          code:match("stateDiagram") or
+          code:match("erDiagram") or
+          code:match("journey") or
+          code:match("gantt") or
+          code:match("pie") or
+          code:match("quadrantChart") or
+          code:match("requirementDiagram") or
+          code:match("gitGraph") or
+          code:match("mindmap") or
+          code:match("timeline") or
+          code:match("sankey") or
+          code:match("xychart") or
+          code:match("block") or
+          code:match("packet") or
+          code:match("kanban") or
+          code:match("C4Context") then
+        code = code:gsub("^%s+", ""):gsub("%s+$", "")
+        return code
+      end
     end
   end
 
-  -- If no pattern matched, check if it's already mermaid code
-  if response_text:match("graph%s+[TLBR]D") or
+  -- If no pattern matched, check if response itself is already mermaid code
+  if response_text:match("graph%s+[TLBR][DR]?") or
+      response_text:match("flowchart%s+[TLBR][DR]?") or
       response_text:match("sequenceDiagram") or
-      response_text:match("classDiagram") then
-    return response_text
+      response_text:match("classDiagram") or
+      response_text:match("stateDiagram") then
+    return response_text:gsub("^%s+", ""):gsub("%s+$", "")
   end
 
   return nil
@@ -100,7 +132,6 @@ M.save_diagram_file = function(mermaid_code, output_file, title, provider_name, 
     vim.notify("⚠️  Mermaid validation warnings", vim.log.levels.WARN)
   end
 
-  -- ✅ PERUBAHAN: format string diperbaiki, mermaid_code sekarang masuk ke output
   local md_content = string.format(
     "# %s\n\n**Generated**: %s\n**Source**: %s\n**Provider**: %s\n\n```mermaid\n%s\n```\n",
     title,
@@ -110,7 +141,6 @@ M.save_diagram_file = function(mermaid_code, output_file, title, provider_name, 
     mermaid_code
   )
 
-  -- Write to file
   local file = io.open(output_file, "w")
   if not file then
     vim.notify("❌ Failed to write file: " .. output_file, vim.log.levels.ERROR)
@@ -129,7 +159,6 @@ M.generate_output_filename = function(diagram_type, prefix, custom_dir)
   local filename = vim.fn.expand('%:t:r')
   local timestamp = os.date("%Y%m%d_%H%M%S")
 
-  -- Create directory if it doesn't exist
   if dir ~= "." then
     vim.fn.mkdir(dir, "p")
   end
@@ -194,20 +223,28 @@ M.build_diagram_prompt = function(diagram_type, filetype, code_content, complexi
   elseif diagram_type == "architecture" then
     return prompts.build_architecture_prompt(filetype, code_content)
   else
-    -- Default to flowchart
     return prompts.build_flowchart_prompt(filetype, code_content, complexity_level)
   end
 end
 
--- Get buffer content
+-- ✅ PERUBAHAN 2: Get buffer content + visual feedback "ngeblok semua teks".
+-- Tetap baca seluruh buffer seperti semula, tapi sekarang juga menjalankan
+-- `ggVG` lalu <Esc> supaya user melihat seluruh file ter-highlight sebentar
+-- sebelum request dikirim ke AI.
 M.get_buffer_content = function()
   local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
   local code_content = table.concat(lines, "\n")
 
-  if code_content == "" then
+  if code_content == "" or code_content:match("^%s*$") then
     vim.notify("⚠️ No content to analyze", vim.log.levels.WARN)
     return nil
   end
+
+  -- Visual feedback: blok semua teks di current file (ggVG) lalu Esc
+  pcall(function()
+    vim.cmd("normal! ggVG")
+    vim.cmd("normal! \27")
+  end)
 
   return code_content
 end

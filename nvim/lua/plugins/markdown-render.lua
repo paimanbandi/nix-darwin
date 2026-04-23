@@ -38,12 +38,10 @@ return {
     ft = { "markdown" },
     config = function(_, opts)
       require("render-markdown").setup(opts)
-
       -- Keybindings
       vim.keymap.set("n", "<leader>mr", "<cmd>RenderMarkdown toggle<cr>", { desc = "Toggle Render Markdown" })
       vim.keymap.set("n", "<leader>me", "<cmd>RenderMarkdown enable<cr>", { desc = "Enable Render Markdown" })
       vim.keymap.set("n", "<leader>md", "<cmd>RenderMarkdown disable<cr>", { desc = "Disable Render Markdown" })
-
       -- Custom highlights
       vim.api.nvim_set_hl(0, "RenderMarkdownCode", {
         bg = "#1a1b26"
@@ -56,6 +54,7 @@ return {
   },
   {
     "iamcco/markdown-preview.nvim",
+    cmd = { "MarkdownPreview", "MarkdownPreviewStop", "MarkdownPreviewToggle" }, -- ⬅️ TAMBAH INI
     keys = {
       { "<leader>mp", "<cmd>MarkdownPreview<cr>",       desc = "Markdown Preview" },
       { "<leader>ms", "<cmd>MarkdownPreviewStop<cr>",   desc = "Stop Preview" },
@@ -80,11 +79,9 @@ return {
         desc = "Open Mermaid in Live Editor"
       },
     },
-    build = function()
-      vim.fn["mkdp#util#install"]()
-    end,
+    build = "cd app && npx --yes yarn install", -- ⬅️ GANTI BUILD
     ft = { "markdown", "mermaid" },
-    config = function()
+    init = function()                           -- ⬅️ PINDAH SETTING KE init (bukan config)
       vim.g.mkdp_theme = 'dark'
       vim.g.mkdp_auto_start = 0
       vim.g.mkdp_auto_close = 1
