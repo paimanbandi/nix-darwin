@@ -39,7 +39,7 @@ return require("lazy").setup({
   require("plugins.flash"),
   require("plugins.llm"),
 }, {
-  install = { missing = false },
+  install = { missing = true },
   checker = { enabled = false },
   change_detection = { enabled = false },
   lockfile = vim.fn.stdpath("state") .. "/lazy-lock.json",
