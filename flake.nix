@@ -49,6 +49,7 @@
           };
 
           environment.systemPackages = with pkgs; [
+            glow
             # Shell utilities
             lsd
             tree

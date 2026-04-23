@@ -33,7 +33,6 @@ return require("lazy").setup({
   require("plugins.aerial"),
   require("plugins.blamer"),
   require("plugins.grug-far"),
-  require("plugins.refactoring"),
   require("plugins.spectre"),
   require("plugins.todo"),
   require("plugins.dropbar"),
