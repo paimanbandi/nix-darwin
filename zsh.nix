@@ -55,7 +55,7 @@
       export CARGO_HOME="/Users/paiman/.cargo"
       export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       export DOCKER_HOST="unix:///Users/paiman/.colima/default/docker.sock"
-      export PATH="/run/current-system/sw/bin:$FLUTTER_HOME/bin:$CARGO_HOME/bin:$PATH"
+      export PATH="$HOME/Applications/nvim-macos-arm64/bin:/run/current-system/sw/bin:$FLUTTER_HOME/bin:$CARGO_HOME/bin:$PATH"
 
       # Load secrets from JSON file
       if [ -f "$HOME/.secrets.json" ]; then
