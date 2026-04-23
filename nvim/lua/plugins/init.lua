@@ -13,7 +13,6 @@ return require("lazy").setup({
   require("plugins.lualine"),
   require("plugins.modes"),
   require("plugins.fzf"),
-  require("plugins.leap"),
   require("plugins.git"),
   require("plugins.trouble"),
   require("plugins.tree"),
