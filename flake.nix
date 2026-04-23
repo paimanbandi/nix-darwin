@@ -56,7 +56,6 @@
 
             # Text editors
             vim
-            neovim
 
             # Version control
             git
