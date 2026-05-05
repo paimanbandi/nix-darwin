@@ -205,6 +205,8 @@
             pandoc # Konversi markdown/docx
             antiword
 
+            typer
+
           ];
 
           nix.settings.experimental-features = [
