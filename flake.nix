@@ -206,7 +206,7 @@
             antiword
 
             typer
-
+            md2pdf
           ];
 
           nix.settings.experimental-features = [
