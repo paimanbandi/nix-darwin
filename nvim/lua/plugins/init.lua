@@ -26,7 +26,6 @@ return require("lazy").setup({
   require("plugins.yazi"),
   require("plugins.markdown-render"),
   require("plugins.markdown-export"),
-  -- require("plugins.markdown-ai-wrapper"),
   require("plugins.markdown-ai"),
   require("plugins.smear-cursor"),
   require("plugins.aerial"),
@@ -38,6 +37,7 @@ return require("lazy").setup({
   require("plugins.multi-cursor"),
   require("plugins.flash"),
   require("plugins.llm"),
+  require("plugins.elixir"),
 }, {
   install = { missing = true },
   checker = { enabled = false },
