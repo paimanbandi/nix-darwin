@@ -15,6 +15,9 @@
     starship
     zsh
     jq
+    tree-sitter
+    gcc
+    nodejs
   ];
 
   home.file.".config/nvim".source = ./nvim;
