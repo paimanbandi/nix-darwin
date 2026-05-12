@@ -65,9 +65,6 @@ return {
       vim.g.mkdp_browser = ''
       vim.g.mkdp_echo_preview_url = 1
 
-      -- ⬇️ MATIKAN sync scroll — ini biang keroknya
-      -- Ketika kita klik anchor link, sync scroll langsung "tarik" balik
-      -- ke posisi cursor di nvim. Jadi scroll ke section gagal.
       vim.g.mkdp_preview_options = {
         mkit = {},
         katex = {},
@@ -75,19 +72,19 @@ return {
         maid = {
           theme = 'dark',
         },
-        disable_sync_scroll = 1,       -- ⬅️ DIUBAH: 0 → 1 (matikan sync scroll)
-        sync_scroll_type = 'relative', -- ⬅️ DIUBAH: 'middle' → 'relative' (fallback kalau di-enable lagi)
+        disable_sync_scroll = 1,
+        sync_scroll_type = 'relative',
         hide_yaml_meta = 1,
         sequence_diagrams = {},
         flowchart_diagrams = {},
         content_editable = false,
         disable_filename = 0,
-        toc = {} -- ⬅️ DITAMBAH: enable TOC anchor support
+        toc = {}
       }
 
-      -- ⬇️ DITAMBAH: custom CSS untuk smooth scroll + scroll-margin
-      -- supaya heading gak ketutup di atas saat anchor di-klik
-      vim.g.mkdp_markdown_css = vim.fn.expand("~/.config/nvim/markdown-preview.css")
+      -- ⬇️ DIHAPUS: vim.g.mkdp_markdown_css = ...
+      -- Custom CSS bikin tampilan jadi plain/jelek.
+      -- Biarin pake default style plugin (yang udah bagus dengan dark theme).
 
       vim.api.nvim_create_autocmd("FileType", {
         pattern = { "markdown", "mermaid" },
@@ -100,9 +97,6 @@ return {
           vim.keymap.set("n", "<leader>mt", "<cmd>MarkdownPreviewToggle<cr>",
             { buffer = buf, desc = "Toggle Preview", silent = true })
 
-          -- ⬇️ DITAMBAH: toggle sync scroll on-demand
-          -- Kadang kita pengen sync scroll nyala lagi (saat editing)
-          -- Kadang pengen mati (saat navigasi via TOC)
           vim.keymap.set("n", "<leader>mc", function()
             if vim.g.mkdp_preview_options.disable_sync_scroll == 1 then
               vim.g.mkdp_preview_options.disable_sync_scroll = 0
