@@ -38,11 +38,9 @@ return {
     ft = { "markdown" },
     config = function(_, opts)
       require("render-markdown").setup(opts)
-      -- Keybindings
       vim.keymap.set("n", "<leader>mr", "<cmd>RenderMarkdown toggle<cr>", { desc = "Toggle Render Markdown" })
       vim.keymap.set("n", "<leader>me", "<cmd>RenderMarkdown enable<cr>", { desc = "Enable Render Markdown" })
       vim.keymap.set("n", "<leader>md", "<cmd>RenderMarkdown disable<cr>", { desc = "Disable Render Markdown" })
-      -- Custom highlights
       vim.api.nvim_set_hl(0, "RenderMarkdownCode", {
         bg = "#1a1b26"
       })
@@ -54,34 +52,10 @@ return {
   },
   {
     "iamcco/markdown-preview.nvim",
-    cmd = { "MarkdownPreview", "MarkdownPreviewStop", "MarkdownPreviewToggle" }, -- ⬅️ TAMBAH INI
-    keys = {
-      { "<leader>mp", "<cmd>MarkdownPreview<cr>",       desc = "Markdown Preview" },
-      { "<leader>ms", "<cmd>MarkdownPreviewStop<cr>",   desc = "Stop Preview" },
-      { "<leader>mt", "<cmd>MarkdownPreviewToggle<cr>", desc = "Toggle Preview" },
-      {
-        "<leader>ml",
-        function()
-          local start_line = vim.fn.search("```mermaid", "bnW")
-          local end_line = vim.fn.search("```", "nW")
-          if start_line > 0 and end_line > 0 then
-            local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line - 1, false)
-            local content = table.concat(lines, "\n")
-            local encoded = vim.fn.system('echo "' .. content:gsub('"', '\\"') .. '" | base64')
-            encoded = encoded:gsub("\n", "")
-            local url = "https://mermaid.live/edit#pako:eNp" .. encoded
-            vim.fn.system("open '" .. url .. "'")
-            vim.notify("Opening in Mermaid Live...", vim.log.levels.INFO)
-          else
-            vim.notify("No mermaid block found at cursor", vim.log.levels.WARN)
-          end
-        end,
-        desc = "Open Mermaid in Live Editor"
-      },
-    },
-    build = "cd app && npx --yes yarn install", -- ⬅️ GANTI BUILD
+    cmd = { "MarkdownPreview", "MarkdownPreviewStop", "MarkdownPreviewToggle" },
     ft = { "markdown", "mermaid" },
-    init = function()                           -- ⬅️ PINDAH SETTING KE init (bukan config)
+    build = "cd app && npx --yes yarn install",
+    init = function()
       vim.g.mkdp_theme = 'dark'
       vim.g.mkdp_auto_start = 0
       vim.g.mkdp_auto_close = 1
@@ -104,6 +78,36 @@ return {
         flowchart_diagrams = {},
         content_editable = false,
       }
-    end
+
+      -- ⬇️ PINDAH KEYMAPS KE init() — supaya langsung ter-set saat startup
+      -- Bukan nunggu lazy-load trigger
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = { "markdown", "mermaid" },
+        callback = function(args)
+          local buf = args.buf
+          vim.keymap.set("n", "<leader>mp", "<cmd>MarkdownPreview<cr>",
+            { buffer = buf, desc = "Markdown Preview", silent = true })
+          vim.keymap.set("n", "<leader>ms", "<cmd>MarkdownPreviewStop<cr>",
+            { buffer = buf, desc = "Stop Preview", silent = true })
+          vim.keymap.set("n", "<leader>mt", "<cmd>MarkdownPreviewToggle<cr>",
+            { buffer = buf, desc = "Toggle Preview", silent = true })
+          vim.keymap.set("n", "<leader>ml", function()
+            local start_line = vim.fn.search("```mermaid", "bnW")
+            local end_line = vim.fn.search("```", "nW")
+            if start_line > 0 and end_line > 0 then
+              local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line - 1, false)
+              local content = table.concat(lines, "\n")
+              local encoded = vim.fn.system('echo "' .. content:gsub('"', '\\"') .. '" | base64')
+              encoded = encoded:gsub("\n", "")
+              local url = "https://mermaid.live/edit#pako:" .. encoded
+              vim.fn.system("open '" .. url .. "'")
+              vim.notify("Opening in Mermaid Live...", vim.log.levels.INFO)
+            else
+              vim.notify("No mermaid block found at cursor", vim.log.levels.WARN)
+            end
+          end, { buffer = buf, desc = "Open Mermaid in Live Editor", silent = true })
+        end,
+      })
+    end,
   }
 }
