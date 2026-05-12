@@ -64,6 +64,10 @@ return {
       vim.g.mkdp_open_to_the_world = 0
       vim.g.mkdp_browser = ''
       vim.g.mkdp_echo_preview_url = 1
+
+      -- ⬇️ MATIKAN sync scroll — ini biang keroknya
+      -- Ketika kita klik anchor link, sync scroll langsung "tarik" balik
+      -- ke posisi cursor di nvim. Jadi scroll ke section gagal.
       vim.g.mkdp_preview_options = {
         mkit = {},
         katex = {},
@@ -71,16 +75,20 @@ return {
         maid = {
           theme = 'dark',
         },
-        disable_sync_scroll = 0,
-        sync_scroll_type = 'middle',
+        disable_sync_scroll = 1,       -- ⬅️ DIUBAH: 0 → 1 (matikan sync scroll)
+        sync_scroll_type = 'relative', -- ⬅️ DIUBAH: 'middle' → 'relative' (fallback kalau di-enable lagi)
         hide_yaml_meta = 1,
         sequence_diagrams = {},
         flowchart_diagrams = {},
         content_editable = false,
+        disable_filename = 0,
+        toc = {} -- ⬅️ DITAMBAH: enable TOC anchor support
       }
 
-      -- ⬇️ PINDAH KEYMAPS KE init() — supaya langsung ter-set saat startup
-      -- Bukan nunggu lazy-load trigger
+      -- ⬇️ DITAMBAH: custom CSS untuk smooth scroll + scroll-margin
+      -- supaya heading gak ketutup di atas saat anchor di-klik
+      vim.g.mkdp_markdown_css = vim.fn.expand("~/.config/nvim/markdown-preview.css")
+
       vim.api.nvim_create_autocmd("FileType", {
         pattern = { "markdown", "mermaid" },
         callback = function(args)
@@ -91,6 +99,20 @@ return {
             { buffer = buf, desc = "Stop Preview", silent = true })
           vim.keymap.set("n", "<leader>mt", "<cmd>MarkdownPreviewToggle<cr>",
             { buffer = buf, desc = "Toggle Preview", silent = true })
+
+          -- ⬇️ DITAMBAH: toggle sync scroll on-demand
+          -- Kadang kita pengen sync scroll nyala lagi (saat editing)
+          -- Kadang pengen mati (saat navigasi via TOC)
+          vim.keymap.set("n", "<leader>mc", function()
+            if vim.g.mkdp_preview_options.disable_sync_scroll == 1 then
+              vim.g.mkdp_preview_options.disable_sync_scroll = 0
+              vim.notify("Sync scroll: ON", vim.log.levels.INFO)
+            else
+              vim.g.mkdp_preview_options.disable_sync_scroll = 1
+              vim.notify("Sync scroll: OFF (TOC links akan work)", vim.log.levels.INFO)
+            end
+          end, { buffer = buf, desc = "Toggle Sync Scroll", silent = true })
+
           vim.keymap.set("n", "<leader>ml", function()
             local start_line = vim.fn.search("```mermaid", "bnW")
             local end_line = vim.fn.search("```", "nW")

@@ -1,0 +1,17 @@
+html {
+  scroll-behavior: smooth;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  scroll-margin-top: 20px;
+}
+
+body {
+  background-color: #1a1b26 !important;
+  color: #c0caf5 !important;
+}
