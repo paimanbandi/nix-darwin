@@ -7,7 +7,7 @@ local M = {}
 M.default_config = {
   provider = "claude", -- "claude", "deepseek", "openai", "ollama"
   auto_detect = true,
-  save_path = "./diagrams",
+  save_path = "~/Diagrams",
   default_complexity = "moderate",
 
   -- Provider-specific settings
