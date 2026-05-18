@@ -83,6 +83,11 @@ M.generate_diagram = function(diagram_type, complexity, provider_name)
   local code_content = core.get_buffer_content()
   if not code_content then return end
 
+  -- ✅ Pastikan save dir exist sebelum core nulis file ke situ
+  if config.ensure_save_path then
+    config.ensure_save_path()
+  end
+
   local filetype = vim.bo.filetype
   local prompt = core.build_diagram_prompt(diagram_type, filetype, code_content, complexity)
 
@@ -231,6 +236,8 @@ M.configure_provider = function()
   elseif choice == 3 then
     local new_path = vim.fn.input("Save path: ", config.config.save_path)
     if new_path and new_path ~= "" then
+      -- ✅ EXPAND tilde dulu sebelum mkdir/save
+      new_path = vim.fn.expand(new_path)
       config.config.save_path = new_path
       vim.fn.mkdir(new_path, "p")
       vim.notify("✅ Save path set to: " .. new_path, vim.log.levels.INFO)
@@ -284,7 +291,7 @@ return {
   },
   opts = {
     provider = "claude",
-    save_path = "~/Diagrams",
+    save_path = vim.fn.expand("~/Diagrams"), -- ✅ expand di sini juga, jaga-jaga
     auto_detect = true,
     providers = {
       deepseek = {

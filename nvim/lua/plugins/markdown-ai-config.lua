@@ -3,11 +3,18 @@
 
 local M = {}
 
+-- ✅ Helper: expand tilde / env vars in path
+-- vim.fn.mkdir() & file ops gak otomatis expand ~, jadi WAJIB lewat sini
+local function expand_path(path)
+  if not path or path == "" then return path end
+  return vim.fn.expand(path)
+end
+
 -- Default configuration
 M.default_config = {
-  provider = "claude", -- "claude", "deepseek", "openai", "ollama"
+  provider = "claude",                   -- "claude", "deepseek", "openai", "ollama"
   auto_detect = true,
-  save_path = "~/Diagrams",
+  save_path = expand_path("~/Diagrams"), -- ✅ di-expand di sini, jadi udah absolute path
   default_complexity = "moderate",
 
   -- Provider-specific settings
@@ -51,17 +58,30 @@ M.default_config = {
 -- Current configuration
 M.config = vim.deepcopy(M.default_config)
 
+-- ✅ Helper: ensure save dir exists (lazy create, dgn tilde expansion)
+M.ensure_save_path = function()
+  local dir = expand_path(M.config.save_path)
+  -- Update config dgn versi yg udah di-expand (idempotent)
+  M.config.save_path = dir
+  if dir and dir ~= "" and vim.fn.isdirectory(dir) == 0 then
+    vim.fn.mkdir(dir, "p")
+  end
+  return dir
+end
+
 -- Setup function
 M.setup = function(user_config)
   if user_config then
     M.config = vim.tbl_deep_extend("force", M.config, user_config)
   end
 
-  -- Create save directory if it doesn't exist
-  local dir = M.config.save_path
-  if dir and dir ~= "." and dir ~= "./" then
-    vim.fn.mkdir(dir, "p")
+  -- ✅ Expand save_path kalau user kasih tilde literal via user_config
+  if M.config.save_path then
+    M.config.save_path = expand_path(M.config.save_path)
   end
+
+  -- ✅ JANGAN auto-mkdir di setup. Bikin folder pas perlu aja
+  -- (kalau lo prefer auto-create, panggil M.ensure_save_path() di sini)
 
   vim.notify("✅ Diagram generator configured", vim.log.levels.INFO)
 end
@@ -149,6 +169,7 @@ M.show_provider_status = function()
 
   table.insert(status_lines, "╠══════════════════════════════════════════════════════════╣")
   table.insert(status_lines, string.format("║ Current Default: %-30s ║", M.config.provider))
+  table.insert(status_lines, string.format("║ Save Path: %-44s ║", M.config.save_path or "(none)"))
   table.insert(status_lines, "╚══════════════════════════════════════════════════════════╝")
 
   local status_text = table.concat(status_lines, "\n")
