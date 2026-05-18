@@ -284,7 +284,7 @@ return {
   },
   opts = {
     provider = "claude",
-    save_path = "./diagrams",
+    save_path = "~/Diagrams",
     auto_detect = true,
     providers = {
       deepseek = {

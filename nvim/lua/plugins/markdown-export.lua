@@ -1,6 +1,28 @@
 -- Plugin untuk export mermaid ke PNG/SVG
 local M = {}
 
+-- ✅ Config: output directory (bisa di-override dari luar)
+M.config = {
+  output_dir = vim.fn.expand("~/Diagrams"),
+}
+
+-- ✅ Helper: resolve & ensure output dir exists (lazy create)
+M.get_output_dir = function()
+  local dir = M.config.output_dir
+  if vim.fn.isdirectory(dir) == 0 then
+    vim.fn.mkdir(dir, "p")
+  end
+  return dir
+end
+
+-- ✅ Helper: build output filename dgn parent folder prefix (avoid collision)
+M.build_output_filename = function(format)
+  local base_name = vim.fn.expand("%:t:r")
+  local parent = vim.fn.fnamemodify(vim.fn.expand("%:p:h"), ":t")
+  -- Hasil: ~/Diagrams/<parent-folder>-<filename>.<ext>
+  return M.get_output_dir() .. "/" .. parent .. "-" .. base_name .. "." .. format
+end
+
 M.find_chrome = function()
   local chrome_paths = {
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -55,7 +77,7 @@ M.extract_mermaid_content = function(lines)
   return mermaid_lines
 end
 
--- ✅ NEW: Build mmdc command dengan high quality settings
+-- ✅ Build mmdc command dengan high quality settings
 M.build_mmdc_command = function(format, chrome_path, temp_file, output_file, config_file, css_file)
   local bg = (format == "png") and "white" or "transparent"
 
@@ -92,7 +114,7 @@ M.build_mmdc_command = function(format, chrome_path, temp_file, output_file, con
   )
 end
 
--- ✅ NEW: Generate config & CSS files
+-- ✅ Generate config & CSS files
 M.create_config_files = function()
   -- Mermaid puppeteer config
   local config_file = vim.fn.tempname() .. ".json"
@@ -186,8 +208,8 @@ M.export_mermaid_block = function(format)
 
   local config_file, css_file = M.create_config_files()
 
-  local base_name = vim.fn.expand("%:t:r")
-  local output_file = vim.fn.expand("%:p:h") .. "/" .. base_name .. "." .. format
+  -- ✅ Output disimpan ke ~/Diagrams (atau M.config.output_dir)
+  local output_file = M.build_output_filename(format)
   local chrome_path = M.find_chrome()
 
   vim.notify("🖼️  Exporting HD... (may take 30-60 sec)", vim.log.levels.INFO)
@@ -224,11 +246,8 @@ M.export_full_document = function(format)
     return
   end
 
-  local output_dir = vim.fn.expand("%:p:h") .. "/diagrams"
-  vim.fn.mkdir(output_dir, "p")
-
-  local base_name = vim.fn.expand("%:t:r")
-  local output_file = output_dir .. "/" .. base_name .. "." .. format
+  -- ✅ Output disimpan ke ~/Diagrams (atau M.config.output_dir)
+  local output_file = M.build_output_filename(format)
 
   local temp_file = vim.fn.tempname() .. ".mmd"
   vim.fn.writefile(mermaid_content, temp_file)
