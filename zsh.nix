@@ -57,10 +57,17 @@
       export DOCKER_HOST="unix:///Users/paiman/.colima/default/docker.sock"
       export PATH="$HOME/Applications/nvim-macos-arm64/bin:/run/current-system/sw/bin:$FLUTTER_HOME/bin:$CARGO_HOME/bin:$PATH"
 
-      # === Auto-load secrets dari ~/.secrets.json ===
-      # Convention: key di JSON harus pake nama env var standard (lowercase).
-      # Contoh: aws_access_key_id → $AWS_ACCESS_KEY_ID
-      # Tambah secret baru = tinggal `secrets add <key> <value>`, no edit zsh.nix.
+      # ════════════════════════════════════════════════════════════
+      # Auto-load secrets dari ~/.secrets.json
+      # ════════════════════════════════════════════════════════════
+      # Convention: nama key di JSON harus pakai env var standard (lowercase).
+      # Contoh:
+      #   aws_access_key_id      → $AWS_ACCESS_KEY_ID
+      #   aws_secret_access_key  → $AWS_SECRET_ACCESS_KEY
+      #   github_token           → $GITHUB_TOKEN
+      #   openai_api_key         → $OPENAI_API_KEY
+      #
+      # Tambah secret baru = `secrets add <key> <value>` (no edit zsh.nix needed)
       if [ -f "$HOME/.secrets.json" ] && command -v jq >/dev/null 2>&1; then
         while IFS='=' read -r key value; do
           export "$key=$value"
@@ -92,7 +99,7 @@
       }
       add-zsh-hook precmd set_ghostty_title
 
-      # Function override for nd
+      # Function override for nvim
       function n() {
         print -Pn "\e]0;$(basename $PWD)\a"
         export NVIM_NO_TITLE=1
@@ -104,8 +111,11 @@
         nvim .
       }
 
-      # === Secrets management ===
-      # Wrap reload logic biar konsisten dengan auto-export pattern di atas.
+      # ════════════════════════════════════════════════════════════
+      # Secrets management
+      # ════════════════════════════════════════════════════════════
+      # Helper: reload semua env vars dari secrets.json.
+      # Pattern sama dengan auto-export di atas → konsisten.
       _reload_secrets() {
         local secrets_file="$HOME/.secrets.json"
         [ -f "$secrets_file" ] || return 0
@@ -138,8 +148,12 @@
           "add")
             if [ -z "$key" ] || [ -z "$value" ]; then
               echo "Usage: secrets add <key> <value>"
-              echo "Tip: pake nama key sesuai convention env var standard."
-              echo "     Contoh: aws_access_key_id (bukan aws_access_key)"
+              echo ""
+              echo "Tip: pakai nama key sesuai env var standard (lowercase)."
+              echo "Contoh:"
+              echo "  secrets add aws_access_key_id AKIA..."
+              echo "  secrets add aws_secret_access_key ..."
+              echo "  secrets add github_token ghp_..."
               return 1
             fi
             if [ -f "$secrets_file" ]; then
@@ -183,17 +197,18 @@
             ;;
           "reload")
             _reload_secrets
-            echo "Reloaded env vars"
+            echo "Reloaded env vars dari $secrets_file"
             ;;
           *)
             echo "Usage: secrets <command>"
+            echo ""
             echo "Commands:"
-            echo "  show                    - Show all secrets (masked) + env vars"
-            echo "  add <key> <value>       - Add/update a secret"
-            echo "  remove <key>            - Remove a secret"
-            echo "  get <key>               - Get secret value"
-            echo "  edit                    - Edit secrets file (in nvim)"
-            echo "  reload                  - Reload env vars dari secrets.json"
+            echo "  show                    Show all secrets (masked) + env var names"
+            echo "  add <key> <value>       Add/update a secret"
+            echo "  remove <key>            Remove a secret (alias: rm, delete, del)"
+            echo "  get <key>               Get secret value (plain)"
+            echo "  edit                    Edit secrets file (in nvim)"
+            echo "  reload                  Reload env vars dari secrets.json"
             ;;
         esac
       }
