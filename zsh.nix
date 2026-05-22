@@ -57,16 +57,19 @@
       export DOCKER_HOST="unix:///Users/paiman/.colima/default/docker.sock"
       export PATH="$HOME/Applications/nvim-macos-arm64/bin:/run/current-system/sw/bin:$FLUTTER_HOME/bin:$CARGO_HOME/bin:$PATH"
 
-      # Load secrets from JSON file
-      if [ -f "$HOME/.secrets.json" ]; then
-        # export DEEPSEEK_API_KEY=$(jq -r '.deepseek_api_key // empty' "$HOME/.secrets.json")
-        export OPENAI_API_KEY=$(jq -r '.openai_api_key // empty' "$HOME/.secrets.json")
-        # export ANTHROPIC_API_KEY=$(jq -r '.anthropic_api_key // empty' "$HOME/.secrets.json")
-        export GITHUB_TOKEN=$(jq -r '.github_token // empty' "$HOME/.secrets.json")
-        export AWS_ACCESS_KEY_ID=$(jq -r '.aws_access_key // empty' "$HOME/.secrets.json")
-        export AWS_SECRET_ACCESS_KEY=$(jq -r '.aws_secret_key // empty' "$HOME/.secrets.json")
+      # === Auto-load secrets dari ~/.secrets.json ===
+      # Convention: key di JSON harus pake nama env var standard (lowercase).
+      # Contoh: aws_access_key_id → $AWS_ACCESS_KEY_ID
+      # Tambah secret baru = tinggal `secrets add <key> <value>`, no edit zsh.nix.
+      if [ -f "$HOME/.secrets.json" ] && command -v jq >/dev/null 2>&1; then
+        while IFS='=' read -r key value; do
+          export "$key=$value"
+        done < <(
+          jq -r 'to_entries | .[] | "\(.key | ascii_upcase)=\(.value)"' \
+            "$HOME/.secrets.json" 2>/dev/null
+        )
       else
-        echo "~/.secrets.json not found"
+        [ ! -f "$HOME/.secrets.json" ] && echo "~/.secrets.json not found"
       fi
 
       eval "$(starship init zsh)"
@@ -101,18 +104,33 @@
         nvim .
       }
 
-      # Helper function untuk manage secrets
+      # === Secrets management ===
+      # Wrap reload logic biar konsisten dengan auto-export pattern di atas.
+      _reload_secrets() {
+        local secrets_file="$HOME/.secrets.json"
+        [ -f "$secrets_file" ] || return 0
+        while IFS='=' read -r key value; do
+          export "$key=$value"
+        done < <(
+          jq -r 'to_entries | .[] | "\(.key | ascii_upcase)=\(.value)"' \
+            "$secrets_file" 2>/dev/null
+        )
+      }
+
       secrets() {
         local cmd="$1"
         local key="$2"
         local value="$3"
         local secrets_file="$HOME/.secrets.json"
-        
+
         case "$cmd" in
           "show")
             if [ -f "$secrets_file" ]; then
               echo "Secrets in $secrets_file:"
               jq -r 'to_entries[] | "  \(.key): \(.value | tostring | .[0:10])..."' "$secrets_file"
+              echo ""
+              echo "Env vars yang di-export:"
+              jq -r 'keys[] | "  $\(. | ascii_upcase)"' "$secrets_file"
             else
               echo "$secrets_file not found"
             fi
@@ -120,18 +138,31 @@
           "add")
             if [ -z "$key" ] || [ -z "$value" ]; then
               echo "Usage: secrets add <key> <value>"
+              echo "Tip: pake nama key sesuai convention env var standard."
+              echo "     Contoh: aws_access_key_id (bukan aws_access_key)"
               return 1
             fi
             if [ -f "$secrets_file" ]; then
               jq --arg k "$key" --arg v "$value" '. + {($k): $v}' "$secrets_file" > "''${secrets_file}.tmp" && \
                 mv "''${secrets_file}.tmp" "$secrets_file"
-              echo "Added/updated: $key"
-              # Reload environment
-              source <(jq -r 'to_entries[] | "export \(.key | ascii_upcase)=\"\(.value)\""' "$secrets_file" 2>/dev/null)
+              echo "Added/updated: $key (env: \$$(echo $key | tr '[:lower:]' '[:upper:]'))"
             else
               echo "{\"$key\": \"$value\"}" > "$secrets_file"
               echo "Created $secrets_file with: $key"
-              export "$(echo "$key" | tr '[:lower:]' '[:upper:]')"="$value"
+            fi
+            _reload_secrets
+            echo "Reloaded env vars"
+            ;;
+          "remove"|"rm"|"delete"|"del")
+            if [ -z "$key" ]; then
+              echo "Usage: secrets remove <key>"
+              return 1
+            fi
+            if [ -f "$secrets_file" ]; then
+              jq "del(.$key)" "$secrets_file" > "''${secrets_file}.tmp" && \
+                mv "''${secrets_file}.tmp" "$secrets_file"
+              unset "$(echo $key | tr '[:lower:]' '[:upper:]')"
+              echo "Removed: $key"
             fi
             ;;
           "get")
@@ -147,19 +178,22 @@
             ;;
           "edit")
             nvim "$secrets_file"
-            # Reload setelah edit
-            if [ -f "$secrets_file" ]; then
-              source <(jq -r 'to_entries[] | "export \(.key | ascii_upcase)=\"\(.value)\""' "$secrets_file" 2>/dev/null)
-              echo "Reloaded secrets"
-            fi
+            _reload_secrets
+            echo "Reloaded env vars"
+            ;;
+          "reload")
+            _reload_secrets
+            echo "Reloaded env vars"
             ;;
           *)
             echo "Usage: secrets <command>"
             echo "Commands:"
-            echo "  show                    - Show all secrets (masked)"
+            echo "  show                    - Show all secrets (masked) + env vars"
             echo "  add <key> <value>       - Add/update a secret"
+            echo "  remove <key>            - Remove a secret"
             echo "  get <key>               - Get secret value"
-            echo "  edit                    - Edit secrets file"
+            echo "  edit                    - Edit secrets file (in nvim)"
+            echo "  reload                  - Reload env vars dari secrets.json"
             ;;
         esac
       }
