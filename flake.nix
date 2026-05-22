@@ -207,6 +207,7 @@
 
             typer
             md2pdf
+            gh
           ];
 
           nix.settings.experimental-features = [
