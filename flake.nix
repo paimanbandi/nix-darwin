@@ -140,8 +140,8 @@
             caddy
 
             ## Cloud & Infrastructure
-            awscli
-            # awscli2
+            # awscli
+            awscli2
             flyctl
 
             # Container & virtualization
