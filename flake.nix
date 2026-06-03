@@ -36,18 +36,6 @@
 
           system.primaryUser = "paiman";
 
-          homebrew = {
-            enable = true;
-            casks = [
-              "macfuse"
-            ];
-            onActivation = {
-              cleanup = "zap";
-              autoUpdate = true;
-              upgrade = true;
-            };
-          };
-
           environment.systemPackages = with pkgs; [
             glow
             # Shell utilities
@@ -80,7 +68,7 @@
             # Programming languages
             ## Ruby
             ruby
-            cocoapods
+            # cocoapods
 
             ## Rust
             (pkgs.rust-bin.stable.latest.complete.override {
@@ -231,6 +219,7 @@
         system = system;
         modules = [
           configuration
+          ./homebrew.nix
           home-manager.darwinModules.home-manager
           {
             users.users.paiman = {
