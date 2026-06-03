@@ -204,7 +204,12 @@
           ];
           nix.package = pkgs.nix;
 
-          programs.zsh.enable = true;
+          programs.zsh = {
+            enable = true;
+            initContent = ''
+              eval "$(/opt/homebrew/bin/brew shellenv)"
+            '';
+          };
 
           system.configurationRevision = self.rev or self.dirtyRev or null;
           system.stateVersion = 6;
