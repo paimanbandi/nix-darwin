@@ -121,6 +121,7 @@
         [ ! -d "$SECRETS_DIR" ] && echo "~/.secrets/ directory not found"
       fi
 
+      eval "$(/opt/homebrew/bin/brew shellenv)"
       eval "$(starship init zsh)"
 
       autoload -U up-line-or-beginning-search down-line-or-beginning-search
