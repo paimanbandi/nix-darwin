@@ -1,4 +1,4 @@
-      export EDITOR=nvim
+     export EDITOR=nvim
       export NVIM_NO_TITLE=1
       export FLUTTER_HOME="/Users/paiman/Programs/flutter"
       export CARGO_HOME="/Users/paiman/.cargo"
@@ -35,7 +35,7 @@
 
       _get_active_file() {
         local profile=$(_get_active_profile)
-        echo "$SECRETS_DIR/''${profile}.json"
+        echo "$SECRETS_DIR/${profile}.json"
       }
 
       _clear_secret_env() {
@@ -138,7 +138,7 @@
               done
               return 1
             fi
-            local new_file="$SECRETS_DIR/''${arg1}.json"
+            local new_file="$SECRETS_DIR/${arg1}.json"
             if [ ! -f "$new_file" ]; then
               echo "❌ Profile '$arg1' tidak ditemukan: $new_file"
               echo "   Bikin baru: secrets create $arg1"
@@ -168,7 +168,7 @@
               echo "Usage: secrets create <profile-name>"
               return 1
             fi
-            local new_file="$SECRETS_DIR/''${arg1}.json"
+            local new_file="$SECRETS_DIR/${arg1}.json"
             if [ -f "$new_file" ]; then
               echo "❌ Profile '$arg1' sudah ada"
               return 1
@@ -180,8 +180,8 @@
             ;;
 
           "show")
-            local profile="''${arg1:-$(_get_active_profile)}"
-            local file="$SECRETS_DIR/''${profile}.json"
+            local profile="${arg1:-$(_get_active_profile)}"
+            local file="$SECRETS_DIR/${profile}.json"
             if [ ! -f "$file" ]; then
               echo "❌ Profile '$profile' tidak ditemukan"
               return 1
@@ -204,8 +204,8 @@
             local file=$(_get_active_file)
             mkdir -p "$(dirname "$file")"
             if [ -f "$file" ]; then
-              jq --arg k "$key" --arg v "$value" '. + {($k): $v}' "$file" > "''${file}.tmp" && \
-                mv "''${file}.tmp" "$file"
+              jq --arg k "$key" --arg v "$value" '. + {($k): $v}' "$file" > "${file}.tmp" && \
+                mv "${file}.tmp" "$file"
             else
               echo "{\"$key\": \"$value\"}" > "$file"
             fi
@@ -221,7 +221,7 @@
             fi
             local file=$(_get_active_file)
             if [ -f "$file" ]; then
-              jq "del(.$key)" "$file" > "''${file}.tmp" && mv "''${file}.tmp" "$file"
+              jq "del(.$key)" "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
               unset "$(echo $key | tr '[:lower:]' '[:upper:]')"
               echo "✓ Removed from '$(_get_active_profile)': $key"
             fi
@@ -238,8 +238,8 @@
             ;;
 
           "edit")
-            local profile="''${arg1:-$(_get_active_profile)}"
-            local file="$SECRETS_DIR/''${profile}.json"
+            local profile="${arg1:-$(_get_active_profile)}"
+            local file="$SECRETS_DIR/${profile}.json"
             if [ ! -f "$file" ]; then
               echo "❌ Profile '$profile' tidak ditemukan"
               echo "   Bikin baru: secrets create $profile"
@@ -266,8 +266,8 @@
               echo "Usage: secrets copy <source-profile> <new-profile>"
               return 1
             fi
-            local src_file="$SECRETS_DIR/''${src}.json"
-            local dst_file="$SECRETS_DIR/''${dst}.json"
+            local src_file="$SECRETS_DIR/${src}.json"
+            local dst_file="$SECRETS_DIR/${dst}.json"
             if [ ! -f "$src_file" ]; then
               echo "❌ Source profile '$src' tidak ada"
               return 1
