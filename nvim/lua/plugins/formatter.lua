@@ -70,6 +70,9 @@ return {
         eelixir = { "mix_format" },
         heex = { "mix_format" },
         surface = { "mix_format" },
+        sh = { "shfmt" },
+        bash = { "shfmt" },
+        zsh = { "shfmt" },
       },
       format_on_save = function(bufnr)
         local ignore_filetypes = { "sql" }
