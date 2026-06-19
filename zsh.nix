@@ -48,6 +48,11 @@
       smv = "sqlx migrate revert";
     };
 
-    initContent = builtins.readFile ./zsh-init.sh;
+    initContent = builtins.concatStringsSep "\n" (
+      map builtins.readFile [
+        ./zsh-init.sh
+        ./secrets.sh
+      ]
+    );
   };
 }
