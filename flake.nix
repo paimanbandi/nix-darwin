@@ -99,7 +99,7 @@
             pipx
 
             ## Java
-            zulu8
+            # zulu8
 
             ## C#
             dotnet-sdk_10
@@ -196,6 +196,10 @@
             typer
             md2pdf
             gh
+
+            watchman
+            javaPackages.compiler.openjdk25
+
           ];
 
           nix.settings.experimental-features = [

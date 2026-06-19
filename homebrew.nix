@@ -3,6 +3,9 @@
     enable = true;
     brews = [
       "cocoapods"
+      "libimobiledevice"
+      "usbmuxd"
+      "ideviceinstaller"
     ];
     casks = [
       "macfuse"
