@@ -200,6 +200,8 @@
             watchman
             javaPackages.compiler.openjdk25
 
+            shfmt
+
           ];
 
           nix.settings.experimental-features = [

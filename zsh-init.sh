@@ -5,7 +5,7 @@
       export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       export DOCKER_HOST="unix:///Users/paiman/.colima/default/docker.sock"
       export MAESTRO_BIN="$HOME/.maestro/bin"
-      export ANDROID_HOME=$HOME/Library/Android/sdk
+     export ANDROID_HOME=$HOME/Library/Android/sdk
       export PATH="$HOME/Applications/nvim-macos-arm64/bin:/run/current-system/sw/bin:$FLUTTER_HOME/bin:$CARGO_HOME/bin:$MAESTRO_BIN:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$PATH"
 
       # ════════════════════════════════════════════════════════════
