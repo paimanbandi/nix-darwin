@@ -28,6 +28,10 @@ return {
           args = { "format", "$FILENAME" },
           stdin = false,
         },
+        shfmt = {
+          command = "/run/current-system/sw/bin/shfmt",
+          args = { "-i", "2", "-ci" },
+        },
         mix_format = {
           command = "mix",
           args = function(self, ctx)
