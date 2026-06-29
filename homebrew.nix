@@ -6,6 +6,7 @@
       "libimobiledevice"
       "usbmuxd"
       "ideviceinstaller"
+      "nuclei"
     ];
     casks = [
       "macfuse"

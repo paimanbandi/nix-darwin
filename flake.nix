@@ -201,6 +201,7 @@
             javaPackages.compiler.openjdk25
 
             shfmt
+            pipx
 
           ];
 
