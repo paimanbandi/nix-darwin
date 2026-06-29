@@ -8,6 +8,8 @@
       "ideviceinstaller"
       "nuclei"
       "subfinder"
+      "ffuf"
+      "seclists"
     ];
     casks = [
       "macfuse"
