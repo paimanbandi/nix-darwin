@@ -7,6 +7,7 @@
       "usbmuxd"
       "ideviceinstaller"
       "nuclei"
+      "subfinder"
     ];
     casks = [
       "macfuse"
