@@ -9,7 +9,6 @@
       "nuclei"
       "subfinder"
       "ffuf"
-      "seclists"
     ];
     casks = [
       "macfuse"
@@ -20,4 +19,8 @@
       upgrade = true;
     };
   };
+
+  environment.systemPackages = [
+    pkgs.seclists
+  ];
 }
