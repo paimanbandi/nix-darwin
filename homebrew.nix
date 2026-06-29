@@ -10,7 +10,9 @@
       "ideviceinstaller"
       "nuclei"
       "subfinder"
+      "amass"
       "ffuf"
+      "httpx"
     ];
     casks = [
       "macfuse"
