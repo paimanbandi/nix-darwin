@@ -1,3 +1,5 @@
+setopt interactivecomments
+
 export EDITOR=nvim
 export NVIM_NO_TITLE=1
 export FLUTTER_HOME="/Users/paiman/Programs/flutter"
