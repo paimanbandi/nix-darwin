@@ -3,7 +3,7 @@ return {
     "coder/claudecode.nvim",
     dependencies = { "folke/snacks.nvim" },
     opts = {
-      terminal_cmd = "claude", -- arahkan ke command Claude Code-MU (lihat catatan)
+      terminal_cmd = "claude-work", -- arahkan ke command Claude Code-MU (lihat catatan)
     },
     config = true,
     cmd = { "ClaudeCode", "ClaudeCodeFocus", "ClaudeCodeSend", "ClaudeCodeAdd",
