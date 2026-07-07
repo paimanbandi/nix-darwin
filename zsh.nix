@@ -46,8 +46,7 @@
       smr = "sqlx migrate run";
       smi = "sqlx migrate info";
       smv = "sqlx migrate revert";
-      cc-personal = "claude";
-      cc-work = "CLAUDE_CONFIG_DIR=$HOME/.claude-work claude";
+      claude-work = "CLAUDE_CONFIG_DIR=$HOME/.claude-work claude";
     };
 
     initContent = builtins.concatStringsSep "\n" (
