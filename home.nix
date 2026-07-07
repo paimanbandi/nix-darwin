@@ -29,9 +29,6 @@
   # blok ini lalu `darwin-rebuild switch`.
   home.file.".config/mcphub/servers.json".text = builtins.toJSON {
     mcpServers = {
-      figma = {
-        url = "https://mcp.figma.com/mcp";
-      };
       figma-desktop = {
         url = "http://127.0.0.1:3845/mcp";
       };
