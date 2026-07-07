@@ -39,6 +39,7 @@ return require("lazy").setup({
   require("plugins.llm"),
   require("plugins.elixir"),
   require("plugins.mcp"),
+  require("plugins.codecompanion")
 }, {
   install = { missing = true },
   checker = { enabled = false },
