@@ -38,8 +38,8 @@ return require("lazy").setup({
   require("plugins.flash"),
   require("plugins.llm"),
   require("plugins.elixir"),
-  require("plugins.mcp"),
-  require("plugins.codecompanion")
+  require("plugins.codecompanion"),
+  require("plugins.claudecode")
 }, {
   install = { missing = true },
   checker = { enabled = false },
