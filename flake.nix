@@ -203,6 +203,8 @@
             shfmt
             pipx
 
+            gpgme
+
           ];
 
           nix.settings.experimental-features = [
