@@ -203,7 +203,7 @@
             shfmt
             pipx
 
-            gpgme
+            gnup
 
           ];
 
